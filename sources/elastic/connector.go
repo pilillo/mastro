@@ -1,0 +1,96 @@
+package elastic
+
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+
+	"strings"
+
+	es7 "github.com/elastic/go-elasticsearch/v7"
+	"github.com/pilillo/mastro/utils/conf"
+	stringutils "github.com/pilillo/mastro/utils/strings"
+)
+
+var requiredFields = map[string]string{
+	"esUser":  "username",
+	"esPwd":   "password",
+	"esHosts": "hosts",
+	"esIndex": "index",
+}
+
+var optionalFields = map[string]string{
+	"cert": "cert",
+}
+
+// todo: if we want to allow multiple es connections from different services, then move creation to respective services
+var Connector ElasticConnector = ElasticConnector{}
+
+type ElasticConnector struct {
+	Client    *es7.Client
+	IndexName string
+}
+
+/*
+https://www.elastic.co/blog/the-go-client-for-elasticsearch-working-with-data
+*/
+
+// ValidateDataSourceDefinition ... Validates the input data source definition
+func (c *ElasticConnector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
+	// check all required fields are available
+	var missingFields []string
+	for _, reqvalue := range requiredFields {
+		if _, exist := def.Settings.Values[reqvalue]; !exist {
+			missingFields = append(missingFields, reqvalue)
+		}
+	}
+
+	if len(missingFields) > 0 {
+		// https://stackoverflow.com/questions/28799110/how-to-join-a-slice-of-strings-into-a-single-string
+		return fmt.Errorf("The following fields are missing from the data source configuration: %s", strings.Join(missingFields, ","))
+	}
+
+	log.Println("Successfully validated data source definition")
+	return nil
+}
+
+// InitConnection ... Starts a connection with Elastic Search
+func (c *ElasticConnector) InitConnection(def *conf.DataSourceDefinition) {
+	var err error
+	//c.client, err = es7.NewDefaultClient()
+	elasticHostnames := stringutils.SplitAndTrim(def.Settings.Values[requiredFields["esHosts"]], ",")
+
+	esConfig := es7.Config{
+		Addresses: elasticHostnames,
+		Username:  def.Settings.Values[requiredFields["esUser"]],
+		Password:  def.Settings.Values[requiredFields["esPwd"]],
+	}
+	// if encryption is enabled then set the server certificate
+	if certFile, exist := def.Settings.Values[optionalFields["cert"]]; exist {
+		cert, err := ioutil.ReadFile(certFile)
+		if err != nil {
+			log.Fatal("Error while reading certificate", err)
+		}
+		esConfig.CACert = cert
+	}
+
+	c.Client, err = es7.NewClient(esConfig)
+	// set the index for the client
+	c.IndexName = def.Settings.Values[requiredFields["esIndex"]]
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := c.Client.Info()
+	if err != nil {
+		log.Fatalf("Error getting response: %s", err)
+	}
+	defer res.Body.Close()
+	log.Println("Successfully connected to ES")
+	log.Println(res)
+}
+
+func (c *ElasticConnector) CloseConnection() {
+	c.CloseConnection()
+}
