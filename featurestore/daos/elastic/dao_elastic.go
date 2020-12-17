@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/esapi"
@@ -18,9 +19,23 @@ import (
 	"github.com/pilillo/mastro/utils/conf"
 )
 
-// ElasticDAO ... The struct for the ElasticSearch DAO for the FeatureStore service
-type ElasticDAO struct {
-	Connector *elastic.ElasticConnector
+// both init and sync.Once are thread-safe
+// but only sync.Once is lazy
+var once sync.Once
+var instance *dao
+
+// GetSingleton ... get an instance of the dao backend
+func GetSingleton() abstract.FeatureSetDAOProvider {
+	// once.do is lazy, we use it to return an instance of the DAO
+	once.Do(func() {
+		instance = &dao{}
+	})
+	return instance
+}
+
+// dao ... The struct for the ElasticSearch DAO for the FeatureStore service
+type dao struct {
+	Connector *elastic.Connector
 }
 
 /*
@@ -109,7 +124,7 @@ type Feature struct {
 	DataType string `json:"data-type,omitempty"`
 }
 
-func (dao *ElasticDAO) checkIndex(def *conf.DataSourceDefinition) error {
+func (dao *dao) checkIndex(def *conf.DataSourceDefinition) error {
 	// if file location has no specified folder, check at the same position of the config
 	indexDefFilePath := def.Settings.Values["index-def"]
 
@@ -144,9 +159,9 @@ func (dao *ElasticDAO) checkIndex(def *conf.DataSourceDefinition) error {
 }
 
 // Init ... Initialize connection to elastic search and target index
-func (dao *ElasticDAO) Init(def *conf.DataSourceDefinition) {
+func (dao *dao) Init(def *conf.DataSourceDefinition) {
 	// create connector
-	dao.Connector = &elastic.ElasticConnector{}
+	dao.Connector = elastic.NewElasticConnector()
 	// init connector
 	dao.Connector.InitConnection(def)
 	// make sure the target index exists
@@ -157,7 +172,7 @@ func (dao *ElasticDAO) Init(def *conf.DataSourceDefinition) {
 }
 
 // Create ... Create featureset on ES
-func (dao *ElasticDAO) Create(fs *abstract.FeatureSet) error {
+func (dao *dao) Create(fs *abstract.FeatureSet) error {
 
 	jsonVal, err := json.Marshal(fs)
 	if err != nil {
@@ -190,7 +205,7 @@ func (dao *ElasticDAO) Create(fs *abstract.FeatureSet) error {
 	return nil
 }
 
-func (dao *ElasticDAO) search(buf *bytes.Buffer) (*SearchResponse, error) {
+func (dao *dao) search(buf *bytes.Buffer) (*SearchResponse, error) {
 	// Perform a search request.
 	res, err := dao.Connector.Client.Search(
 		dao.Connector.Client.Search.WithContext(context.Background()),
@@ -253,7 +268,7 @@ func (dao *ElasticDAO) search(buf *bytes.Buffer) (*SearchResponse, error) {
 }
 
 // GetById ... Retrieve document by given id
-func (dao *ElasticDAO) GetById(id string) (*abstract.FeatureSet, error) {
+func (dao *dao) GetById(id string) (*abstract.FeatureSet, error) {
 	// prepare search query
 	// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-ids-query.html
 	var buf bytes.Buffer
@@ -288,7 +303,7 @@ func (dao *ElasticDAO) GetById(id string) (*abstract.FeatureSet, error) {
 }
 
 // ListAllFeatureSets ... Return all featuresets in index
-func (dao *ElasticDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
+func (dao *dao) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
 
 	// in ES to return all documents in an index we need the following query:
 	/*
@@ -387,6 +402,6 @@ func convertDaoFeaturesToFeatures(features []Feature) (*[]abstract.Feature, erro
 }
 
 // CloseConnection ... Terminates the connection to ES for the DAO
-func (dao *ElasticDAO) CloseConnection() {
+func (dao *dao) CloseConnection() {
 	dao.Connector.CloseConnection()
 }

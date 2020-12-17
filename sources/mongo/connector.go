@@ -21,16 +21,22 @@ var requiredFields = map[string]string{
 	"collection": "collection",
 }
 
-var Connector MongoConnector = MongoConnector{}
+// NewMongoConnector ... Factory
+func NewMongoConnector() *Connector {
+	return &Connector{}
+}
 
-type MongoConnector struct {
+// todo: find a way not to export this struct outside
+
+// Connector ... struct containing info on how to connect to a mongo db
+type Connector struct {
 	DBCLient   *mongo.Client
 	Database   *mongo.Database
 	Collection *mongo.Collection
 }
 
 // ValidateDataSourceDefinition ... validates the provided data source definition
-func (c *MongoConnector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
+func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
 	// check all required fields are available
 	var missingFields []string
 	for _, reqvalue := range requiredFields {
@@ -48,7 +54,7 @@ func (c *MongoConnector) ValidateDataSourceDefinition(def *conf.DataSourceDefini
 }
 
 // InitConnection ... Instantiate the connection with the remote DB
-func (c *MongoConnector) InitConnection(def *conf.DataSourceDefinition) {
+func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 
 	// todo: mongo connection string varies a lot, maybe just pass that from a secret rather than composing it here??
 	connectionString := fmt.Sprintf(
@@ -81,7 +87,7 @@ func (c *MongoConnector) InitConnection(def *conf.DataSourceDefinition) {
 }
 
 // CloseConnection ... Disconnects and deallocates resources
-func (c *MongoConnector) CloseConnection() {
+func (c *Connector) CloseConnection() {
 	ctx := context.Background()
 	c.DBCLient.Disconnect(ctx)
 }

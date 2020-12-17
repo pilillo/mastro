@@ -18,6 +18,7 @@ type Config struct {
 	ConfigType           string               `yaml:"type"`
 	Details              Details              `yaml:"details,omitempty"`
 	DataSourceDefinition DataSourceDefinition `yaml:"backend"`
+	CrawlerDefinition    CrawlerDefinition    `yaml:"crawler"`
 }
 
 // Details ... a map where we can place service specific configuration

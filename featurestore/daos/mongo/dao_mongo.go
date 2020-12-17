@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/pilillo/mastro/abstract"
-	mastromongo "github.com/pilillo/mastro/sources/mongo"
+	"github.com/pilillo/mastro/sources/mongo"
+
 	"github.com/pilillo/mastro/utils/conf"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,8 +36,8 @@ type FeatureMongoDao struct {
 	DataType string             `bson:"data-type,omitempty"`
 }
 
-type MongoDAO struct {
-	Connector *mastromongo.MongoConnector
+type mongoDAO struct {
+	Connector *mongo.Connector
 }
 
 func convertFeatureDTOtoDAO(f *abstract.Feature) *FeatureMongoDao {
@@ -109,20 +111,32 @@ func convertFeatureSetDAOToDTO(fsmd *FeatureSetMongoDao) *abstract.FeatureSet {
 	return fs
 }
 
-//collection := client.Database("testing").Collection("numbers")
+// both init and sync.Once are thread-safe
+// but only sync.Once is lazy
+var once sync.Once
+var instance *mongoDAO
 
-func (dao *MongoDAO) Init(def *conf.DataSourceDefinition) {
+// GetSingleton ... lazy singleton on DAO
+func GetSingleton() abstract.FeatureSetDAOProvider {
+	// once.do is lazy, we use it to return an instance of the DAO
+	once.Do(func() {
+		instance = &mongoDAO{}
+	})
+	return instance
+}
+
+func (dao *mongoDAO) Init(def *conf.DataSourceDefinition) {
 	// create mongo connector
-	dao.Connector = &mastromongo.MongoConnector{}
+	dao.Connector = mongo.NewMongoConnector()
 	// init mongo connector
 	dao.Connector.InitConnection(def)
 }
 
-func (dao *MongoDAO) CloseConnection() {
+func (dao *mongoDAO) CloseConnection() {
 	dao.Connector.CloseConnection()
 }
 
-func (dao *MongoDAO) Create(fs *abstract.FeatureSet) error {
+func (dao *mongoDAO) Create(fs *abstract.FeatureSet) error {
 	// convert DTO to DAO
 	//bsonVal := bson.M{"name": "pi", "value": 3.14159}
 	fsmd := convertFeatureSetDTOtoDAO(fs)
@@ -144,7 +158,7 @@ func (dao *MongoDAO) Create(fs *abstract.FeatureSet) error {
 	return nil
 }
 
-func (dao *MongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
+func (dao *mongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
 	var result FeatureSetMongoDao
 	filter := bson.M{"_id": id}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -159,7 +173,7 @@ func (dao *MongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
 	return nil, nil
 }
 
-func (dao *MongoDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
+func (dao *mongoDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
 	var features []FeatureSetMongoDao
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

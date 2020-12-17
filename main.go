@@ -8,6 +8,8 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/pilillo/mastro/catalogue"
+	"github.com/pilillo/mastro/catalogue/crawlers"
 	"github.com/pilillo/mastro/featurestore"
 	"github.com/pilillo/mastro/utils/conf"
 	"github.com/pilillo/mastro/utils/ux"
@@ -40,8 +42,9 @@ func loadCfg() *conf.Config {
 func start() {
 	switch Cfg.ConfigType {
 	case "crawler":
+		crawlers.Start(Cfg)
 	case "catalogue":
-
+		catalogue.StartEndpoint(Cfg)
 	case "featurestore":
 		featurestore.StartEndpoint(Cfg)
 	default:

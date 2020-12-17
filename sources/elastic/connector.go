@@ -23,20 +23,25 @@ var optionalFields = map[string]string{
 	"cert": "cert",
 }
 
-// todo: if we want to allow multiple es connections from different services, then move creation to respective services
-var Connector ElasticConnector = ElasticConnector{}
-
-type ElasticConnector struct {
-	Client    *es7.Client
-	IndexName string
+// NewElasticConnector factory
+func NewElasticConnector() *Connector {
+	return &Connector{}
 }
 
 /*
 https://www.elastic.co/blog/the-go-client-for-elasticsearch-working-with-data
 */
 
+// todo: find a way not to export this
+
+// Connector ... Connector type
+type Connector struct {
+	Client    *es7.Client
+	IndexName string
+}
+
 // ValidateDataSourceDefinition ... Validates the input data source definition
-func (c *ElasticConnector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
+func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
 	// check all required fields are available
 	var missingFields []string
 	for _, reqvalue := range requiredFields {
@@ -55,7 +60,7 @@ func (c *ElasticConnector) ValidateDataSourceDefinition(def *conf.DataSourceDefi
 }
 
 // InitConnection ... Starts a connection with Elastic Search
-func (c *ElasticConnector) InitConnection(def *conf.DataSourceDefinition) {
+func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	var err error
 	//c.client, err = es7.NewDefaultClient()
 	elasticHostnames := stringutils.SplitAndTrim(def.Settings.Values[requiredFields["esHosts"]], ",")
@@ -91,6 +96,6 @@ func (c *ElasticConnector) InitConnection(def *conf.DataSourceDefinition) {
 	log.Println(res)
 }
 
-func (c *ElasticConnector) CloseConnection() {
+func (c *Connector) CloseConnection() {
 	c.CloseConnection()
 }

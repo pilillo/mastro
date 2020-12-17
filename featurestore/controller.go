@@ -71,11 +71,6 @@ func ListAllFeatureSets(c *gin.Context) {
 	if err != nil {
 		c.JSON(err.Status, err)
 	} else {
-		/*
-			for index, element := range fsets {
-
-			}
-		*/
 		c.JSON(http.StatusOK, fsets)
 	}
 }
@@ -89,7 +84,7 @@ func StartEndpoint(cfg *conf.Config) {
 	featureSetService.Init(cfg)
 
 	// add an healthcheck for the endpoint
-	router.GET("/healthcheck", Ping)
+	router.GET(fmt.Sprintf("healthcheck/%s", featureSetRestEndpoint), Ping)
 
 	// get feature set as featureset/fs_id
 	router.GET(fmt.Sprintf("%s/:%s", featureSetRestEndpoint, featureSetIDParam), GetFeatureSetByID)
