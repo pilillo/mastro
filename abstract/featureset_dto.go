@@ -7,6 +7,11 @@ import (
 )
 
 // FeatureState ... a versioned set of features refered to a window over a reference time series or stream
+type FeatureState struct {
+	Description string            `json:"description,omitempty"`
+	Features    []Feature         `json:"features,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+}
 
 // FeatureSet ... a versioned set of features
 type FeatureSet struct {

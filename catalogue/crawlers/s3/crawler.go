@@ -31,7 +31,7 @@ func (crawler *s3Crawler) InitConnection(details *S3ConnDetails) (*s3Crawler, er
 		return nil, err
 	}
 
-	return &S3Crawler{
+	return &s3Crawler{
 		Client: minioClient,
 	}, nil
 
@@ -48,7 +48,7 @@ func (crawler *s3Crawler) Walk(bucket string) ([]minio.ObjectInfo, error) {
 		return nil, fmt.Errorf("bucket %s does not exist", bucket)
 	}
 
-	return crawler.ListObjects(bucket, "", true, abstract.ManifestFileName)
+	return crawler.ListObjects(bucket, "", true, abstract.DefaultManifestFilename)
 }
 
 func (crawler *s3Crawler) ListBuckets() ([]minio.BucketInfo, error) {

@@ -8,7 +8,7 @@ require (
 	github.com/elastic/go-elasticsearch v0.0.0
 	github.com/elastic/go-elasticsearch/v7 v7.10.0
 	github.com/gin-gonic/gin v1.6.3
-	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/go-redis/redis/v8 v8.4.4
 	github.com/jcmturner/gokrb5/v8 v8.4.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/klauspost/compress v1.11.0 // indirect
@@ -19,7 +19,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.4.3
-	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect

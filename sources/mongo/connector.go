@@ -30,7 +30,7 @@ func NewMongoConnector() *Connector {
 
 // Connector ... struct containing info on how to connect to a mongo db
 type Connector struct {
-	DBCLient   *mongo.Client
+	Client     *mongo.Client
 	Database   *mongo.Database
 	Collection *mongo.Collection
 }
@@ -69,12 +69,12 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	ctx := context.Background()
 	//c.DBCLient, err = mongo.NewClient(options.Client().ApplyURI(connectionString))
 	//err = c.DBCLient.Connect(context.Background())
-	c.DBCLient, err = mongo.Connect(ctx, options.Client().ApplyURI(connectionString))
+	c.Client, err = mongo.Connect(ctx, options.Client().ApplyURI(connectionString))
 
 	if err != nil {
 		log.Fatal(err)
 	} else {
-		if err = c.DBCLient.Ping(ctx, readpref.Primary()); err != nil {
+		if err = c.Client.Ping(ctx, readpref.Primary()); err != nil {
 			log.Fatal(err)
 		} else {
 			log.Println("Successfully connected to db")
@@ -82,12 +82,12 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	}
 
 	// set target db and connections
-	c.Database = c.DBCLient.Database(def.Settings.Values[requiredFields["database"]])
+	c.Database = c.Client.Database(def.Settings.Values[requiredFields["database"]])
 	c.Collection = c.Database.Collection(def.Settings.Values[requiredFields["collection"]])
 }
 
 // CloseConnection ... Disconnects and deallocates resources
 func (c *Connector) CloseConnection() {
 	ctx := context.Background()
-	c.DBCLient.Disconnect(ctx)
+	c.Client.Disconnect(ctx)
 }
