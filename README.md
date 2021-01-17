@@ -15,6 +15,10 @@ Data and Feature Catalogue in Go
 
 Mastro is still on development and largely untested.
 
+## TLDR
+
+* [PlantUML Diagram of the repo](https://www.dumels.com/diagram/2e5f820a-1822-4852-8259-4811deefa789)
+
 ## Connectors
 
 A Data source is defined in the `abstract` package as follows:
@@ -160,14 +164,6 @@ with the service adding a date time for additional versioning and finally replyi
     }
 }
 ```
-
-### Example
-Have a look at the conf folder for an example configuration, using either ElasticSearch or Mongo as backend.
-
-```
-./mastro --configpath conf/featurestore/elastic/example_elastic.cfg
-```
-
 
 ## Data Catalogue
 Data providers can describe and publish data using a shared definition format.
