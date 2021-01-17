@@ -36,7 +36,7 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 	// check all required fields are available
 	var missingFields []string
 	for _, reqvalue := range requiredFields {
-		if _, exist := def.Settings.Values[reqvalue]; !exist {
+		if _, exist := def.Settings[reqvalue]; !exist {
 			missingFields = append(missingFields, reqvalue)
 		}
 	}
@@ -46,7 +46,7 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 		return fmt.Errorf("The following fields are missing from the data source configuration: %s", strings.Join(missingFields, ","))
 	}
 
-	_, err := strconv.Atoi(def.Settings.Values[requiredFields["redisDB"]])
+	_, err := strconv.Atoi(def.Settings[requiredFields["redisDB"]])
 	if err != nil {
 		return fmt.Errorf("Impossible to convert redisDB to integer")
 	}
@@ -63,8 +63,8 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	//stringutils.SplitAndTrim(def.Settings.Values[requiredFields["redisHost"]], ",")
 
 	redisConf.Addr = redisHost
-	redisConf.Username = def.Settings.Values[requiredFields["redisUser"]]
-	redisConf.Password = def.Settings.Values[requiredFields["redisPwd"]]
+	redisConf.Username = def.Settings[requiredFields["redisUser"]]
+	redisConf.Password = def.Settings[requiredFields["redisPwd"]]
 	// assuming we did already validate the conversion to int
 	redisConf.DB, _ = strconv.Atoi(def.Settings.Values[requiredFields["redisDb"]])
 

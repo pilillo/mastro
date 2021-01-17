@@ -40,7 +40,7 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 	// check all required fields are available
 	var missingFields []string
 	for _, reqvalue := range requiredFields {
-		if _, exist := def.Settings.Values[reqvalue]; !exist {
+		if _, exist := def.Settings[reqvalue]; !exist {
 			missingFields = append(missingFields, reqvalue)
 		}
 	}
@@ -59,9 +59,9 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	// todo: mongo connection string varies a lot, maybe just pass that from a secret rather than composing it here??
 	connectionString := fmt.Sprintf(
 		"mongodb://%s:%s@%s",
-		def.Settings.Values[requiredFields["username"]],
-		def.Settings.Values[requiredFields["password"]],
-		def.Settings.Values[requiredFields["host"]],
+		def.Settings[requiredFields["username"]],
+		def.Settings[requiredFields["password"]],
+		def.Settings[requiredFields["host"]],
 	)
 	log.Println("Connecting to", connectionString)
 
@@ -82,8 +82,8 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	}
 
 	// set target db and connections
-	c.Database = c.Client.Database(def.Settings.Values[requiredFields["database"]])
-	c.Collection = c.Database.Collection(def.Settings.Values[requiredFields["collection"]])
+	c.Database = c.Client.Database(def.Settings[requiredFields["database"]])
+	c.Collection = c.Database.Collection(def.Settings[requiredFields["collection"]])
 }
 
 // CloseConnection ... Disconnects and deallocates resources

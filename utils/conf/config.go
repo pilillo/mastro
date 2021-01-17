@@ -15,22 +15,22 @@ var Args struct {
 
 // Config ... Defines a model for the input config files
 type Config struct {
-	ConfigType           string               `yaml:"type"`
-	Details              Details              `yaml:"details,omitempty"`
+	ConfigType           ConfigType           `yaml:"type"`
+	Details              map[string]string    `yaml:"details,omitempty"`
 	DataSourceDefinition DataSourceDefinition `yaml:"backend"`
-	CrawlerDefinition    CrawlerDefinition    `yaml:"crawler"`
 }
 
-// Details ... a map where we can place service specific configuration
-type Details struct {
-	Values map[string]string
-}
+// ConfigType ... config type
+type ConfigType string
 
-// UnmarshalYAML is used to unmarshal into map[string]string
-// https://www.ribice.ba/golang-yaml-string-map/
-func (d *Details) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	return unmarshal(&d.Values)
-}
+const (
+	// Crawler ... crawler agent config type
+	Crawler ConfigType = "crawler"
+	// Catalogue ... catalogue config type
+	Catalogue = "catalogue"
+	// FeatureStore ... featurestore config type
+	FeatureStore = "featurestore"
+)
 
 func fileExists(filename string) bool {
 	info, err := os.Stat(filename)
@@ -57,7 +57,7 @@ func validateCfg(cfg *Config) (*Config, error) {
 // Load ... load configuration from file path
 func Load(filename string) *Config {
 	if !fileExists(filename) {
-		log.Fatalf("Example file does not exist (or is a directory)")
+		log.Fatalf("Configuration file %s does not exist (or is a directory)", filename)
 	}
 
 	data, err := ioutil.ReadFile(filename)

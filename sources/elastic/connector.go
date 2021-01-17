@@ -45,7 +45,7 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 	// check all required fields are available
 	var missingFields []string
 	for _, reqvalue := range requiredFields {
-		if _, exist := def.Settings.Values[reqvalue]; !exist {
+		if _, exist := def.Settings[reqvalue]; !exist {
 			missingFields = append(missingFields, reqvalue)
 		}
 	}
@@ -63,15 +63,15 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	var err error
 	//c.client, err = es7.NewDefaultClient()
-	elasticHostnames := stringutils.SplitAndTrim(def.Settings.Values[requiredFields["esHosts"]], ",")
+	elasticHostnames := stringutils.SplitAndTrim(def.Settings[requiredFields["esHosts"]], ",")
 
 	esConfig := es7.Config{
 		Addresses: elasticHostnames,
-		Username:  def.Settings.Values[requiredFields["esUser"]],
-		Password:  def.Settings.Values[requiredFields["esPwd"]],
+		Username:  def.Settings[requiredFields["esUser"]],
+		Password:  def.Settings[requiredFields["esPwd"]],
 	}
 	// if encryption is enabled then set the server certificate
-	if certFile, exist := def.Settings.Values[optionalFields["cert"]]; exist {
+	if certFile, exist := def.Settings[optionalFields["cert"]]; exist {
 		cert, err := ioutil.ReadFile(certFile)
 		if err != nil {
 			log.Fatal("Error while reading certificate", err)
@@ -81,7 +81,7 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 
 	c.Client, err = es7.NewClient(esConfig)
 	// set the index for the client
-	c.IndexName = def.Settings.Values[requiredFields["esIndex"]]
+	c.IndexName = def.Settings[requiredFields["esIndex"]]
 
 	if err != nil {
 		log.Fatal(err)

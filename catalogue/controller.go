@@ -79,5 +79,5 @@ func StartEndpoint(cfg *conf.Config) {
 
 	// run router as standalone service
 	// todo: do we need to run multiple endpoints from the main?
-	router.Run(fmt.Sprintf(":%s", cfg.Details.Values["port"]))
+	router.Run(fmt.Sprintf(":%s", cfg.Details["port"]))
 }

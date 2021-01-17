@@ -1,45 +1,51 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"log"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pilillo/mastro/abstract"
+	"github.com/pilillo/mastro/sources/s3"
+	"github.com/pilillo/mastro/utils/conf"
 )
 
-type S3ConnDetails struct {
-	Endpoint        string
-	AccessKeyID     string
-	SecretAccessKey string
-	UseSSL          bool
-}
-
 type s3Crawler struct {
-	Client *minio.Client
+	connector *s3.Connector
+	//config    *conf.CrawlerDefinition
 }
 
-func (crawler *s3Crawler) InitConnection(details *S3ConnDetails) (*s3Crawler, error) {
+// NewCrawler ... returns an instance of the crawler
+func NewCrawler() abstract.Crawler {
+	return &s3Crawler{}
+}
 
-	minioClient, err := minio.New(details.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(details.AccessKeyID, details.SecretAccessKey, ""),
-		Secure: details.UseSSL,
-	})
+// GetClient ... get client for test purposes
+func (crawler *s3Crawler) GetClient() *minio.Client {
+	return crawler.connector.GetClient()
+}
 
-	if err != nil {
-		return nil, err
+func (crawler *s3Crawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
+	crawler.connector = s3.NewS3Connector()
+	if err := crawler.connector.ValidateDataSourceDefinition(&cfg.DataSourceDefinition); err != nil {
+		log.Panicln(err)
 	}
+	// inits connection
+	crawler.connector.InitConnection(&cfg.DataSourceDefinition)
 
-	return &s3Crawler{
-		Client: minioClient,
-	}, nil
+	// set filter for the manifest filename
+	//crawler.config = &cfg.CrawlerDefinition
 
+	return crawler, nil
 }
 
+/*
 func (crawler *s3Crawler) Walk(bucket string) ([]minio.ObjectInfo, error) {
 
-	exists, errBucketExists := crawler.Client.BucketExists(context.Background(), bucket)
+	exists, errBucketExists := crawler.GetClient().BucketExists(context.Background(), bucket)
 	if errBucketExists != nil {
 		return nil, errBucketExists
 	}
@@ -52,8 +58,9 @@ func (crawler *s3Crawler) Walk(bucket string) ([]minio.ObjectInfo, error) {
 }
 
 func (crawler *s3Crawler) ListBuckets() ([]minio.BucketInfo, error) {
-	return crawler.Client.ListBuckets(context.Background())
+	return crawler.GetClient().ListBuckets(context.Background())
 }
+*/
 
 func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bool, manifest string) ([]minio.ObjectInfo, error) {
 	//ctx, cancel := context.WithCancel(context.Background())
@@ -65,7 +72,7 @@ func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bo
 		Prefix:    prefix,
 	}
 
-	objectCh := crawler.Client.ListObjects(ctx, bucket, opts)
+	objectCh := crawler.GetClient().ListObjects(ctx, bucket, opts)
 	var slice []minio.ObjectInfo
 
 	for object := range objectCh {
@@ -79,5 +86,49 @@ func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bo
 }
 
 func (crawler *s3Crawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	//ctx := context.Background()
+
+	exists, errBucketExists := crawler.GetClient().BucketExists(ctx, crawler.connector.Bucket)
+	if errBucketExists != nil {
+		return nil, errBucketExists
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("bucket %s does not exist", crawler.connector.Bucket)
+	}
+
+	objs, err := crawler.ListObjects(root, crawler.connector.Prefix, true, filter) //crawler.config.FilterFilename)
+	if err != nil {
+		return nil, err
+	}
+
+	var assets []abstract.Asset
+	opts := minio.GetObjectOptions{}
+	for _, o := range objs {
+		log.Println("Found ", o.Key)
+		reader, err := crawler.connector.GetClient().GetObject(ctx, crawler.connector.Bucket, o.Key, opts)
+		if err != nil {
+			return nil, err
+		}
+		defer reader.Close()
+
+		stat, err := reader.Stat()
+		if err != nil {
+			return nil, err
+		}
+		buf := new(bytes.Buffer)
+		if _, err := io.CopyN(buf, reader, stat.Size); err != nil {
+			return nil, err
+		}
+
+		a, err := abstract.ParseAsset(buf.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		assets = append(assets, *a)
+	}
+
+	return assets, nil
 }

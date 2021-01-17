@@ -126,7 +126,7 @@ type Feature struct {
 
 func (dao *dao) checkIndex(def *conf.DataSourceDefinition) error {
 	// if file location has no specified folder, check at the same position of the config
-	indexDefFilePath := def.Settings.Values["index-def"]
+	indexDefFilePath := def.Settings["index-def"]
 
 	// if the def is indicated without an actual path (parent is itself and dir is ., or directly as ./file)
 	if filepath.Dir(indexDefFilePath) == "." || filepath.Dir(indexDefFilePath) == "." {

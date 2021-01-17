@@ -58,7 +58,6 @@ var (
 )
 
 func main() {
-
 	log.Println(ux.Header)
 	log.Println(ux.Description)
 

@@ -2,9 +2,10 @@ package conf
 
 // DataSourceDefinition ... connection details for a data source connector
 type DataSourceDefinition struct {
-	Name     string  `yaml:"name"`
-	Type     string  `yaml:"type"`
-	Settings Details `yaml:"settings,omitempty"`
+	Name              string            `yaml:"name"`
+	Type              string            `yaml:"type"`
+	CrawlerDefinition CrawlerDefinition `yaml:"crawler,omitempty"`
+	Settings          map[string]string `yaml:"settings,omitempty"`
 	// optional kerberos section
 	KerberosDetails *KerberosDetails `yaml:"kerberos"`
 	// optional tls section

@@ -11,6 +11,9 @@
 ---
 Data and Feature Catalogue in Go
 
+## Disclaimer
+
+Mastro is still on development and largely untested.
 
 ## Connectors
 
@@ -43,6 +46,34 @@ A feature store is a service to store and version features.
 
 A Feature can either be computed on a dataset or a data stream, respectively using a batch or a stream processing pipeline.
 This is due to the different life cycle and performance requirements for collecting and serving those data to end applications.
+
+```go
+// FeatureState ... a versioned set of features refered to a window over a reference time series or stream
+type FeatureState struct {
+	Description string            `json:"description,omitempty"`
+	Features    []Feature         `json:"features,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+}
+
+// FeatureSet ... a versioned set of features
+type FeatureSet struct {
+	InsertedAt  time.Time         `json:"inserted_at,omitempty"`
+	Version     string            `json:"version,omitempty"`
+	Features    []Feature         `json:"features,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+}
+
+// Version ... definition of version for a feature set
+type Version struct{}
+
+// Feature ... a named variable with a data type
+type Feature struct {
+	Name     string      `json:"name,omitempty"`
+	Value    interface{} `json:"value,omitempty"`
+	DataType string      `json:"data-type,omitempty"`
+}
+```
 
 A data access object (DAO) for a featureSet is defined as follows:
 
@@ -225,6 +256,117 @@ func ParseAsset(data []byte) (*Asset, error) {}
 func ValidateAsset(asset Asset) (*Asset, error) {}
 ```
 
-## Disclaimer
+## Configuration
 
-Mastro is still on development and largely untested.
+The package `conf` defines the structure of the Yaml configuration, to be provided as input.
+The config can be used to start one of the three different types: i) crawler, ii) catalogue or iii) featurestore.
+This is defined using the `ConfigType`, an alias for those cases.
+Additional `Details` are also provided as a map to start the component.
+Each component is defined by a `DataSourceDefinition` defining the connection details to a backend persistence service.
+
+```go
+// Config ... Defines a model for the input config files
+type Config struct {
+	ConfigType           ConfigType           `yaml:"type"`
+	Details              map[string]string    `yaml:"details,omitempty"`
+	DataSourceDefinition DataSourceDefinition `yaml:"backend"`
+}
+
+// ConfigType ... config type
+type ConfigType string
+
+const (
+	// Crawler ... crawler agent config type
+	Crawler ConfigType = "crawler"
+	// Catalogue ... catalogue config type
+	Catalogue = "catalogue"
+	// FeatureStore ... featurestore config type
+	FeatureStore = "featurestore"
+)
+```
+
+The `DataSourceDefinition` is defined as a user-selected `name` and a `type`.
+
+```go
+// DataSourceDefinition ... connection details for a data source connector
+type DataSourceDefinition struct {
+	Name              string            `yaml:"name"`
+	Type              string            `yaml:"type"`
+	CrawlerDefinition CrawlerDefinition `yaml:"crawler,omitempty"`
+	Settings          map[string]string `yaml:"settings,omitempty"`
+	// optional kerberos section
+	KerberosDetails *KerberosDetails `yaml:"kerberos"`
+	// optional tls section
+	TLSDetails *TLSDetails `yaml:"tls"`
+}
+```
+
+A `CrawlerDefinition` is optionally provided to the `crawler` component to determine scraping information.
+
+```go
+// CrawlerDefinition ... Config for a Crawler service
+type CrawlerDefinition struct {
+	RootFolder     string `yaml:"root-folder"`
+	FilterFilename string `yaml:"filter-filename"`
+	ScheduleEvery  Period `yaml:"schedule-period"`
+	ScheduleValue  uint64 `yaml:"schedule-value"`
+}
+```
+
+### Feature store
+
+An example configuration for a feature store is defined below:
+
+```go
+type: featurestore
+details:
+  port: 8085
+backend:
+  name: test-mongo
+  type: mongo
+  settings:
+    username: mongo
+    password: test
+    host: "localhost:27017"
+    schema: features
+```
+
+### Catalogue
+
+An example configuration for a mongo-based catalogue service is defined below:
+
+```go
+type: catalogue
+details:
+  port: 8085
+backend:
+  name: test-mongo
+  type: mongo
+  settings:
+    username: mongo
+    password: test
+    host: "localhost:27017"
+    schema: catalogue
+```
+
+### Crawler
+
+An example configuration for an S3 crawler is defined below:
+
+```go
+type: crawler
+details:
+  endpoint: localhost
+  port: 8085
+backend:
+  name: public-minio-s3
+  type: s3
+  crawler:
+    root-folder: ""
+    filter-filename: "MANIFEST.yaml"
+  settings:
+    endpoint: "play.min.io"
+    access-key-id: "Q3AM3UQ867SPQQA43P2F"
+    secret-access-key: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
+    use-ssl: "true"
+```
