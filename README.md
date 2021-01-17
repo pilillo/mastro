@@ -313,7 +313,7 @@ type CrawlerDefinition struct {
 
 An example configuration for a feature store is defined below:
 
-```go
+```yaml
 type: featurestore
 details:
   port: 8085
@@ -331,7 +331,7 @@ backend:
 
 An example configuration for a mongo-based catalogue service is defined below:
 
-```go
+```yaml
 type: catalogue
 details:
   port: 8085
@@ -349,7 +349,7 @@ backend:
 
 An example configuration for an S3 crawler is defined below:
 
-```go
+```yaml
 type: crawler
 details:
   endpoint: localhost
