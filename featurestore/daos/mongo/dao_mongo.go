@@ -40,6 +40,8 @@ type mongoDAO struct {
 	Connector *mongo.Connector
 }
 
+var timeout = 5 * time.Second
+
 func convertFeatureDTOtoDAO(f *abstract.Feature) *FeatureMongoDao {
 	fmd := &FeatureMongoDao{}
 
@@ -81,6 +83,20 @@ func convertFeatureDAOToDTO(fmd *FeatureMongoDao) *abstract.Feature {
 	return f
 }
 
+func convertFeatureSetDAOToDTO(fsmd *FeatureSetMongoDao) *abstract.FeatureSet {
+	fs := &abstract.FeatureSet{}
+
+	//fs.ID = fsmd.ID.String() // set it in DAO, propagate to DTO?
+	fs.InsertedAt = fsmd.InsertedAt
+	fs.Version = fsmd.Version
+
+	fs.Features = convertAllFeatures(&fsmd.Features)
+	fs.Description = fsmd.Description
+	fs.Labels = fsmd.Labels
+
+	return fs
+}
+
 func convertAllFeatureSets(inFeats *[]FeatureSetMongoDao) []abstract.FeatureSet {
 	var feats []abstract.FeatureSet
 	for _, element := range *inFeats {
@@ -95,20 +111,6 @@ func convertAllFeatures(inFeats *[]FeatureMongoDao) []abstract.Feature {
 		feats = append(feats, *convertFeatureDAOToDTO(&element))
 	}
 	return feats
-}
-
-func convertFeatureSetDAOToDTO(fsmd *FeatureSetMongoDao) *abstract.FeatureSet {
-	fs := &abstract.FeatureSet{}
-
-	//fs.ID = fsmd.ID.String() // set it in DAO, propagate to DTO?
-	fs.InsertedAt = fsmd.InsertedAt
-	fs.Version = fsmd.Version
-
-	fs.Features = convertAllFeatures(&fsmd.Features)
-	fs.Description = fsmd.Description
-	fs.Labels = fsmd.Labels
-
-	return fs
 }
 
 // both init and sync.Once are thread-safe
@@ -147,21 +149,21 @@ func (dao *mongoDAO) Create(fs *abstract.FeatureSet) error {
 	}
 
 	// insert
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	res, err := dao.Connector.Collection.InsertOne(ctx, bsonVal)
 	if err != nil {
 		return fmt.Errorf("Error while creating feature set :: %v", err)
 	}
 	id := res.InsertedID
-	log.Println("Inserted FeatureSet %d", id)
+	log.Printf("Inserted FeatureSet %d", id)
 	return nil
 }
 
 func (dao *mongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
 	var result FeatureSetMongoDao
 	filter := bson.M{"_id": id}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	err := dao.Connector.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
@@ -169,13 +171,12 @@ func (dao *mongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
 	}
 
 	// convert DAO to DTO
-
-	return nil, nil
+	return convertFeatureSetDAOToDTO(&result), nil
 }
 
 func (dao *mongoDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
 	var features []FeatureSetMongoDao
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cursor, err := dao.Connector.Collection.Find(
 		ctx,

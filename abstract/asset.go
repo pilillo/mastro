@@ -1,14 +1,15 @@
 package abstract
 
 import (
-	"github.com/simplereach/timeutils"
+	"time"
+
 	"gopkg.in/yaml.v2"
 )
 
 // Asset ... managed resource
 type Asset struct {
 	// asset publication datetime
-	PublishedOn timeutils.Time `yaml:"published-on" json:"published-on"`
+	PublishedOn time.Time `yaml:"published-on" json:"published-on"`
 	// name of the asset
 	Name string `yaml:"name" json:"name"`
 	// description of the asset
@@ -37,7 +38,7 @@ type Type struct {
 
 // Item ... Managed item
 type Item struct {
-	LastDiscoveredAt timeutils.Time
+	LastDiscoveredAt time.Time
 	Asset            Asset
 }
 

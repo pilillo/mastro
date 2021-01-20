@@ -13,10 +13,16 @@ Data and Feature Catalogue in Go
 
 ## Disclaimer
 
-Mastro is still on development and largely untested.
+Mastro is still on development and largely untested. Please fork the repo and extend it at wish.
 
-## TLDR
+## TL-DR
 
+Terminology:
+* FeatureStore - service to manage features (i.e., featureSets and featureStates);
+* Catalogue - service to manage data assets (i.e., static data definitions and their relationships);
+* Crawler - any agent able to list and walk a file system, filter and parse asset definitions (i.e. manifest files) and push them to the catalogue;
+
+Help:
 * [PlantUML Diagram of the repo](https://www.dumels.com/diagram/2e5f820a-1822-4852-8259-4811deefa789)
 
 ## Connectors
