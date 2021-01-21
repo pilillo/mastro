@@ -82,5 +82,5 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 
 // CloseConnection ... terminates the connection
 func (c *Connector) CloseConnection() {
-
+	// c.client.Close() // close not available
 }

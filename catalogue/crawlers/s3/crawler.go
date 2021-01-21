@@ -11,6 +11,7 @@ import (
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/sources/s3"
 	"github.com/pilillo/mastro/utils/conf"
+	"github.com/pilillo/mastro/utils/strings"
 )
 
 type s3Crawler struct {
@@ -62,7 +63,7 @@ func (crawler *s3Crawler) ListBuckets() ([]minio.BucketInfo, error) {
 }
 */
 
-func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bool, manifest string) ([]minio.ObjectInfo, error) {
+func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bool, filter string) ([]minio.ObjectInfo, error) {
 	//ctx, cancel := context.WithCancel(context.Background())
 	//defer cancel()
 	ctx := context.Background()
@@ -79,7 +80,10 @@ func (crawler *s3Crawler) ListObjects(bucket string, prefix string, recursive bo
 		if object.Err != nil {
 			return nil, object.Err
 		}
-		slice = append(slice, object)
+		// append iff the file matches the given pattern
+		if strings.MatchPattern(object.Key, filter) {
+			slice = append(slice, object)
+		}
 	}
 
 	return slice, nil

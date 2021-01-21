@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis/v8 v8.4.4
 	github.com/jasonlvhit/gocron v0.0.1
+	github.com/jcmturner/gokrb5 v8.4.2+incompatible
 	github.com/jcmturner/gokrb5/v8 v8.4.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/klauspost/compress v1.11.0 // indirect
@@ -23,7 +24,9 @@ require (
 	go.mongodb.org/mongo-driver v1.4.3
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
+	gopkg.in/jcmturner/gokrb5.v7 v7.5.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	honnef.co/go/tools v0.1.1
 )

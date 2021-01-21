@@ -1,53 +1,20 @@
 package hdfs
 
 import (
-	"fmt"
+	"bytes"
+	"io"
+	"log"
 	"os"
-
-	gohdfs "github.com/colinmarc/hdfs/v2"
-	"github.com/colinmarc/hdfs/v2/hadoopconf"
+	"path/filepath"
 
 	"github.com/pilillo/mastro/abstract"
+	"github.com/pilillo/mastro/sources/hdfs"
 	"github.com/pilillo/mastro/utils/conf"
-
-	krbClient "github.com/jcmturner/gokrb5/v8/client"
-	"github.com/jcmturner/gokrb5/v8/config"
-	"github.com/jcmturner/gokrb5/v8/keytab"
+	"github.com/pilillo/mastro/utils/strings"
 )
 
-func GetKerberosClient(details *conf.KerberosDetails) *krbClient.Client {
-	// https://github.com/jcmturner/gokrb5/blob/master/v8/USAGE.md
-	// Replace with a valid credentialed client.
-	cfg, err := config.Load(details.KrbConfigPath)
-	if err != nil {
-		panic(err)
-	}
-
-	var krb5Client *krbClient.Client
-
-	if len(details.KeytabPath) > 0 {
-		kt, err := keytab.Load(details.KeytabPath)
-		if err != nil {
-			panic(err)
-		}
-		krb5Client = krbClient.NewWithKeytab(
-			details.Username,
-			details.Realm, kt, cfg,
-			krbClient.DisablePAFXFAST(details.DisablePAFXFAST), krbClient.AssumePreAuthentication(false),
-		)
-	} else {
-		krb5Client = krbClient.NewWithPassword(
-			details.Username,
-			details.Realm, details.Password, cfg,
-			krbClient.DisablePAFXFAST(true),
-		)
-	}
-
-	return krb5Client
-}
-
 type hadoopCrawler struct {
-	client *gohdfs.Client
+	connector *hdfs.Connector
 }
 
 // NewCrawler ... returns an instance of the crawler
@@ -56,54 +23,47 @@ func NewCrawler() abstract.Crawler {
 }
 
 func (crawler *hadoopCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
-	krbDetails := cfg.DataSourceDefinition.KerberosDetails
-
-	// "HADOOP_CONF_DIR" should be set for this to work
-	_, present := os.LookupEnv("HADOOP_CONF_DIR")
-	if !present {
-		panic("HADOOP_CONF_DIR not set!")
+	crawler.connector = hdfs.NewHDFSConnector()
+	if err := crawler.connector.ValidateDataSourceDefinition(&cfg.DataSourceDefinition); err != nil {
+		log.Panicln(err)
 	}
-
-	/*
-		LoadFromEnvironment tries to locate the Hadoop configuration files based on the environment,
-		and returns a HadoopConf object representing the parsed configuration.
-		If the HADOOP_CONF_DIR environment variable is specified, it uses that, or if HADOOP_HOME is specified, it uses $HADOOP_HOME/conf.
-	*/
-	hadoopConf, err := hadoopconf.LoadFromEnvironment()
-	if err != nil {
-		panic(err)
-	}
-
-	// https://godoc.org/github.com/colinmarc/hdfs#ClientOptionsFromConf
-	clientOptions := gohdfs.ClientOptionsFromConf(hadoopConf)
-
-	if clientOptions.KerberosClient != nil {
-		clientOptions.KerberosClient = GetKerberosClient(krbDetails)
-	}
-
-	client, err := gohdfs.NewClient(clientOptions)
-	if err != nil {
-		panic(err)
-	}
-
-	crawler.client = client
+	// inits connection
+	crawler.connector.InitConnection(&cfg.DataSourceDefinition)
 	return crawler, nil
 }
 
-func (crawler *hadoopCrawler) Open(path string) error {
-	file, err := crawler.client.Open(path)
+func (crawler *hadoopCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
+	var assets []abstract.Asset
 
-	if err != nil {
-		return err
+	var walkFn filepath.WalkFunc = func(path string, info os.FileInfo, e error) error {
+		if e != nil {
+			return e
+		}
+
+		// check if it is a regular file (not dir) and the name is like the filter
+		if info.Mode().IsRegular() && strings.MatchPattern(info.Name(), filter) {
+
+			fileReader, err := crawler.connector.GetClient().Open(path)
+			if err != nil {
+				return err
+			}
+			defer fileReader.Close()
+
+			buf := new(bytes.Buffer)
+			if _, err := io.CopyN(buf, fileReader, info.Size()); err != nil {
+				return err
+			}
+
+			a, err := abstract.ParseAsset(buf.Bytes())
+			if err != nil {
+				return err
+			}
+			assets = append(assets, *a)
+		}
+		return nil
 	}
 
-	buf := make([]byte, 59)
-	file.ReadAt(buf, 48847)
+	crawler.connector.GetClient().Walk(root, walkFn)
 
-	fmt.Println(string(buf))
-	return nil
-}
-
-func (crawler *hadoopCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
-	return nil, nil
+	return assets, nil
 }
