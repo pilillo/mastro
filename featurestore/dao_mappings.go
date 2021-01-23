@@ -15,7 +15,6 @@ var availableDAOs = map[string]func() abstract.FeatureSetDAOProvider{
 	"elastic": elastic.GetSingleton,
 }
 
-// todo: remove pre-allocated dao and use a switch in the selectDao function to allocate just 1
 func selectDao(cfg *conf.Config) (abstract.FeatureSetDAOProvider, error) {
 	if singletonDao, ok := availableDAOs[cfg.DataSourceDefinition.Type]; ok {
 		// call singleton constructor on dao

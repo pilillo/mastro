@@ -131,7 +131,7 @@ func (dao *dao) checkIndex(def *conf.DataSourceDefinition) error {
 	// if the def is indicated without an actual path (parent is itself and dir is ., or directly as ./file)
 	if filepath.Dir(indexDefFilePath) == "." || filepath.Dir(indexDefFilePath) == "." {
 		// look for the index def in the same location of the application config
-		indexDefFilePath = filepath.Join(filepath.Dir(conf.Args.ConfigPath), indexDefFilePath)
+		indexDefFilePath = filepath.Join(filepath.Dir(conf.Args.Config), indexDefFilePath)
 	}
 	log.Println("Attempting loading index def file from folder", indexDefFilePath)
 

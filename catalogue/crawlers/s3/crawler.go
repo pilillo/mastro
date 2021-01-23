@@ -16,7 +16,6 @@ import (
 
 type s3Crawler struct {
 	connector *s3.Connector
-	//config    *conf.CrawlerDefinition
 }
 
 // NewCrawler ... returns an instance of the crawler

@@ -8,14 +8,20 @@ import (
 	"github.com/jasonlvhit/gocron"
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/catalogue/crawlers/hdfs"
+	"github.com/pilillo/mastro/catalogue/crawlers/local"
 	"github.com/pilillo/mastro/catalogue/crawlers/s3"
 	"github.com/pilillo/mastro/utils/conf"
+
+	"github.com/go-resty/resty/v2"
 )
 
 var factories = map[string]func() abstract.Crawler{
-	"hdfs": hdfs.NewCrawler,
-	"s3":   s3.NewCrawler,
+	"local": local.NewCrawler,
+	"hdfs":  hdfs.NewCrawler,
+	"s3":    s3.NewCrawler,
 }
+
+var client = resty.New()
 
 // Start ... Starts the crawler defined in the provided config
 func Start(cfg *conf.Config) (abstract.Crawler, error) {
@@ -37,6 +43,24 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 			every = every.Minutes()
 		case conf.Hours:
 			every = every.Hours()
+		case conf.Days:
+			every = every.Days()
+		case conf.Weeks:
+			every = every.Weeks()
+		case conf.Monday:
+			every = every.Monday()
+		case conf.Tuesday:
+			every = every.Tuesday()
+		case conf.Wednesday:
+			every = every.Wednesday()
+		case conf.Thursday:
+			every = every.Thursday()
+		case conf.Friday:
+			every = every.Friday()
+		case conf.Saturday:
+			every = every.Saturday()
+		case conf.Sunday:
+			every = every.Sunday()
 		default:
 			return nil, fmt.Errorf("crawler: schedule period %s not found", cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery)
 		}
@@ -49,6 +73,7 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 	return nil, fmt.Errorf("Impossible to find specified Crawler %s", cfg.DataSourceDefinition.Type)
 }
 
+// Reconcile ... call to walkWithFilter to traverse the FS tree and post all found assets to the catalogue endpoint
 func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 	assets, err := crawler.WalkWithFilter(cfg.DataSourceDefinition.CrawlerDefinition.RootFolder, cfg.DataSourceDefinition.CrawlerDefinition.FilterFilename)
 	if err != nil {
@@ -56,5 +81,14 @@ func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 		return
 	}
 	log.Printf("Found %d assets to merge in catalogue", len(assets))
-	// todo: call a remote catalogue endpoint to add those assets that were just found
+	// call a remote catalogue endpoint to add those assets that were just found
+	// https://github.com/go-resty/resty/blob/master/example_test.go
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(assets).
+		Post(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
+		//Put(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
+	// print response
+	log.Println("Post to catalogue:", resp)
+
 }

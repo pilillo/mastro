@@ -33,12 +33,10 @@ FROM scratch
 COPY --from=builder /build/mastro ./
 
 # set default vars
-ENV MASTRO_CONFIGPATH=cfg.yml
+ENV MASTRO_CONFIG=/
 
 # set config.yaml using wget or local copy
-COPY conf $MASTRO_CONFIGPATH 
+COPY conf $MASTRO_CONFIG
 
 # Command to run when starting the container
 ENTRYPOINT ["./mastro"]
-
-

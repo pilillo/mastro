@@ -30,8 +30,13 @@ func (dao *dao) Init(def *conf.DataSourceDefinition) {
 }
 
 // Create ... Create asset on ES
-func (dao *dao) Create(fs *abstract.Asset) error {
+func (dao *dao) Upsert(fs *abstract.Asset) error {
 	return nil
+}
+
+// SearchAssetsByTags ... search for the provided tags
+func (dao *dao) SearchAssetsByTags(tags []string) (*[]abstract.Asset, error) {
+	return nil, nil
 }
 
 // ListAllFeatureSets ... Return all assets in index
@@ -41,6 +46,11 @@ func (dao *dao) ListAllAssets() (*[]abstract.Asset, error) {
 
 // GetById ... Retrieve document by given id
 func (dao *dao) GetById(id string) (*abstract.Asset, error) {
+	return nil, nil
+}
+
+// GetByName ... Retrieve document by given id
+func (dao *dao) GetByName(id string) (*abstract.Asset, error) {
 	return nil, nil
 }
 

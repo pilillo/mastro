@@ -10,7 +10,7 @@ import (
 
 // Args ... Arguments provided either as env vars or string args
 var Args struct {
-	ConfigPath string `required:"true" arg:"-c,required"`
+	Config string `required:"true" arg:"-c,required"`
 }
 
 // Config ... Defines a model for the input config files

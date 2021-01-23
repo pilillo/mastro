@@ -35,7 +35,7 @@ func (crawler *hadoopCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler
 func (crawler *hadoopCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
 	var assets []abstract.Asset
 
-	var walkFn filepath.WalkFunc = func(path string, info os.FileInfo, e error) error {
+	var walkFn filepath.WalkFunc = func(currentPath string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
 		}
@@ -43,7 +43,7 @@ func (crawler *hadoopCrawler) WalkWithFilter(root string, filter string) ([]abst
 		// check if it is a regular file (not dir) and the name is like the filter
 		if info.Mode().IsRegular() && strings.MatchPattern(info.Name(), filter) {
 
-			fileReader, err := crawler.connector.GetClient().Open(path)
+			fileReader, err := crawler.connector.GetClient().Open(currentPath)
 			if err != nil {
 				return err
 			}

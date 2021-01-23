@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	assetRestEndpoint string = "asset"
-	assetIDParam      string = "asset_id"
+	assetsRestEndpoint string = "assets"
+	assetRestEndpoint  string = "asset"
+	assetIDParam       string = "asset_id"
 )
 
 // Ping ... replies to a ping message for healthcheck purposes
@@ -20,27 +21,53 @@ func Ping(c *gin.Context) {
 	c.String(http.StatusOK, "pong")
 }
 
-// CreateAsset ... creates an asset description entry
-func CreateAsset(c *gin.Context) {
+// UpsertAsset ... creates an asset description entry
+func UpsertAsset(c *gin.Context) {
 	asset := abstract.Asset{}
 	if err := c.ShouldBindJSON(&asset); err != nil {
 		restErr := errors.GetBadRequestError("Invalid JSON Body")
 		c.JSON(restErr.Status, restErr)
 	} else {
-		result, saveErr := assetService.CreateAsset(asset)
+		result, saveErr := assetService.UpsertAssets(&[]abstract.Asset{asset})
 		if saveErr != nil {
 			c.JSON(saveErr.Status, saveErr)
 		} else {
 			c.JSON(http.StatusCreated, result)
 		}
 	}
+}
 
+// BulkUpsert ... bulk upsert
+func BulkUpsert(c *gin.Context) {
+	assets := []abstract.Asset{}
+	if err := c.ShouldBindJSON(&assets); err != nil {
+		restErr := errors.GetBadRequestError("Invalid JSON Body")
+		c.JSON(restErr.Status, restErr)
+	} else {
+		result, saveErr := assetService.UpsertAssets(&assets)
+		if saveErr != nil {
+			c.JSON(saveErr.Status, saveErr)
+		} else {
+			c.JSON(http.StatusCreated, result)
+		}
+	}
 }
 
 // GetAssetByID ... retrieves an asset description by its Unique Name ID
 func GetAssetByID(c *gin.Context) {
 	nameID := c.Param(assetIDParam)
 	asset, getErr := assetService.GetAssetByID(nameID)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+	} else {
+		c.JSON(http.StatusOK, asset)
+	}
+}
+
+// GetAssetByName ... retrieves an asset description by its Unique Name
+func GetAssetByName(c *gin.Context) {
+	nameID := c.Param(assetIDParam)
+	asset, getErr := assetService.GetAssetByName(nameID)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 	} else {
@@ -71,8 +98,10 @@ func StartEndpoint(cfg *conf.Config) {
 	// get asset set as asset/id
 	router.GET(fmt.Sprintf("%s/:%s", assetRestEndpoint, assetIDParam), GetAssetByID)
 
-	// put asset set as asset/
-	router.PUT(fmt.Sprintf("%s/", assetRestEndpoint), CreateAsset)
+	// put asset as asset/
+	router.PUT(fmt.Sprintf("%s/", assetRestEndpoint), UpsertAsset)
+	// put assets as asset/
+	router.PUT(fmt.Sprintf("%s/", assetsRestEndpoint), BulkUpsert)
 
 	// list all assets
 	router.GET(fmt.Sprintf("%s/", assetRestEndpoint), ListAllAssets)

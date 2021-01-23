@@ -1,12 +1,19 @@
-package abstract
+# Mastro
+## Crawlers
+A crawler is an agent traversing file systems to seek for asset definition files.
+Crawlers implement the Crawler interface:
 
-import (
-	"time"
+```go
+type Crawler interface {
+	InitConnection(cfg *conf.Config) (Crawler, error)
+	WalkWithFilter(root string, filenameFilter string) ([]Asset, error)
+}
+```
 
-	"github.com/pilillo/mastro/utils/errors"
-	"gopkg.in/yaml.v2"
-)
+Specifically, the crawler inits the connection to a volume (e.g., hdfs, s3) whereas in the WalkWithFilter it traverses the file system starting from the provided root path.
+A filter is provided to only select specific metadata files, whose naming follows a reserved global setting such as `MANIFEST.yml`. Selected files are then marshalled and returned using the `abstract.Asset` definition:
 
+```go
 // Asset ... managed resource
 type Asset struct {
 	// asset last found by crawler at - only added by service (not crawler/manifest itself, i.e. no yaml)
@@ -38,18 +45,10 @@ type Type struct {
 	Name string `yaml:"name" json:"name"`
 	ID   string `yaml:"id" json:"id"`
 }
+```
 
-// ParseAsset ... Parse an asset specification file
-func ParseAsset(data []byte) (*Asset, error) {
-	asset := Asset{}
-
-	err := yaml.Unmarshal(data, &asset)
-
-	return &asset, err
-}
-
-// Validate ... Validate asset specification file
-func (asset *Asset) Validate() *errors.RestErr {
-
-	return nil
-}
+The package also provide means to parse and validate assets:
+```go
+func ParseAsset(data []byte) (*Asset, error) {}
+func ValidateAsset(asset Asset) (*Asset, error) {}
+```

@@ -5,14 +5,17 @@ import (
 
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/utils/conf"
+	"github.com/pilillo/mastro/utils/date"
 	"github.com/pilillo/mastro/utils/errors"
 )
 
 // Service ... Service Interface listing implemented methods
 type Service interface {
 	Init(cfg *conf.Config) *errors.RestErr
-	CreateAsset(fs abstract.Asset) (*abstract.Asset, *errors.RestErr)
+	UpsertAssets(assets *[]abstract.Asset) (*[]abstract.Asset, *errors.RestErr)
 	GetAssetByID(assetID string) (*abstract.Asset, *errors.RestErr)
+	GetAssetByName(name string) (*abstract.Asset, *errors.RestErr)
+	SearchAssetsByTags(tags []string) (*[]abstract.Asset, *errors.RestErr)
 	ListAllAssets() (*[]abstract.Asset, *errors.RestErr)
 }
 
@@ -39,18 +42,49 @@ func (s *assetServiceType) Init(cfg *conf.Config) *errors.RestErr {
 	return nil
 }
 
-// CreateAsset ... Adds and asset description
-func (s *assetServiceType) CreateAsset(asset abstract.Asset) (*abstract.Asset, *errors.RestErr) {
-	return nil, nil
+// UpsertAsset ... Adds and asset description
+func (s *assetServiceType) UpsertAssets(assets *[]abstract.Asset) (*[]abstract.Asset, *errors.RestErr) {
+	for _, a := range *assets {
+		if restErr := a.Validate(); restErr != nil {
+			return nil, restErr
+		}
+		// add last discovered date
+		a.LastDiscoveredAt = date.GetNow()
+		err := dao.Upsert(&a)
+
+		if err != nil {
+			return nil, errors.GetBadRequestError(err.Error())
+		}
+	}
+
+	// what should we actually return of the newly inserted object?
+	return assets, nil
 }
 
-// GetAssetById ... Retrieves an asset by its name ID
+// GetAssetById ... Retrieves an asset by its unique id
 func (s *assetServiceType) GetAssetByID(assetID string) (*abstract.Asset, *errors.RestErr) {
 	asset, err := dao.GetById(assetID)
 	if err != nil {
 		return nil, errors.GetNotFoundError(err.Error())
 	}
 	return asset, nil
+}
+
+// GetAssetByName ... Retrieves an asset by its unique name
+func (s *assetServiceType) GetAssetByName(name string) (*abstract.Asset, *errors.RestErr) {
+	asset, err := dao.GetByName(name)
+	if err != nil {
+		return nil, errors.GetNotFoundError(err.Error())
+	}
+	return asset, nil
+}
+
+func (s *assetServiceType) SearchAssetsByTags(tags []string) (*[]abstract.Asset, *errors.RestErr) {
+	assets, err := dao.SearchAssetsByTags(tags)
+	if err != nil {
+		return nil, errors.GetNotFoundError(err.Error())
+	}
+	return assets, nil
 }
 
 // ListAllAssets ... Retrieves all stored assets
