@@ -9,7 +9,7 @@
   (__)       ()__________)	\_|  |_/\__,_|___/\__|_|  \___/ 
 ```
 ---
-Data and Feature Catalogue in Go
+👷 Data and Feature Catalogue in Go
 
 ## Disclaimer
 
@@ -18,6 +18,7 @@ Mastro is still on development and largely untested. Please fork the repo and ex
 ## TL-DR
 
 Terminology:
+* [Connector](doc/CONNECTORS.md) - component handling the connection to volumes and data bases
 * [FeatureStore](doc/FEATURESTORE.md) - service to manage features (i.e., featureSets and featureStates);
 * [Catalogue](doc/CATALOGUE.md) - service to manage data assets (i.e., static data definitions and their relationships);
 * [Crawler](doc/CRAWLERS.md) - any agent able to list and walk a file system, filter and parse asset definitions (i.e. manifest files) and push them to the catalogue;
