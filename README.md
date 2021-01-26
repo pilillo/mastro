@@ -11,6 +11,9 @@
 ---
 👷 Data and Feature Catalogue in Go
 
+## Data What?
+![ML Process](img/ml_dev_process.png)
+
 ## Disclaimer
 
 Mastro is still on development and largely untested. Please fork the repo and extend it at wish.
