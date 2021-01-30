@@ -10,6 +10,7 @@ import (
 	"github.com/pilillo/mastro/catalogue/crawlers/hdfs"
 	"github.com/pilillo/mastro/catalogue/crawlers/local"
 	"github.com/pilillo/mastro/catalogue/crawlers/s3"
+	"github.com/pilillo/mastro/catalogue/crawlers/impala"
 	"github.com/pilillo/mastro/utils/conf"
 
 	"github.com/go-resty/resty/v2"
@@ -19,6 +20,7 @@ var factories = map[string]func() abstract.Crawler{
 	"local": local.NewCrawler,
 	"hdfs":  hdfs.NewCrawler,
 	"s3":    s3.NewCrawler,
+	"impala" : impala.NewCrawler,
 }
 
 var client = resty.New()

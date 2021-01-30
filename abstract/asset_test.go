@@ -13,11 +13,10 @@ func TestParsing(t *testing.T) {
     name: "testAsset"
     description: "this is an example asset"
     depends-on: ["asset1", "someother"]
-    metadata:
-      type: "dataset"
-      labels:
-        key1: "val1"
-        key2: "val2"
+    type: dataset
+    labels:
+      key1: "val1"
+      key2: "val2"
     tags:
       - testtag`
 
@@ -27,4 +26,5 @@ func TestParsing(t *testing.T) {
 	assert.Equal(err, nil)
 	assert.NotEqual(asset, nil)
 
+  t.Log(asset)
 }

@@ -18,7 +18,7 @@ import (
 type assetMongoDao struct {
 	ID primitive.ObjectID `bson:"_id,omitempty"`
 	// asset discovery datetime
-	LastDiscoveredAt time.Time `json:"last-discovered-at"`
+	LastDiscoveredAt time.Time `bson:"last-discovered-at"`
 	// asset publication datetime
 	PublishedOn time.Time `bson:"published-on"`
 	// name of the asset
@@ -27,23 +27,15 @@ type assetMongoDao struct {
 	Description string `bson:"description"`
 	// the list of assets this depends on
 	DependsOn []string `bson:"depends-on"`
-	// the actual asset metadata
-	Metadata metadataMongoDao `bson:"metadata"`
+	// asset type
+	Type abstract.AssetType `bson:"type"`
+	// asset labels
+	Labels map[string]interface{} `bson:"labels,omitempty"`
 	// tags are flags used to simplify asset search
 	Tags []string `bson:"tags,omitempty"`
 }
 
-type metadataMongoDao struct {
-	// asset type - refers to the type.name
-	TypeName string `bson:"type"`
-	// asset attributes, key-val list
-	Labels map[string]string `bson:"labels,omitempty"`
-}
 
-type typeMongoDao struct {
-	Name string `bson:"name"`
-	ID   string `bson:"id"`
-}
 
 func convertAssetDTOtoDAO(as *abstract.Asset) *assetMongoDao {
 	asmd := &assetMongoDao{}
@@ -56,10 +48,8 @@ func convertAssetDTOtoDAO(as *abstract.Asset) *assetMongoDao {
 	asmd.Description = as.Description
 	asmd.DependsOn = as.DependsOn
 
-	asmdMetadata := metadataMongoDao{}
-	asmdMetadata.TypeName = as.Metadata.TypeName
-	asmdMetadata.Labels = as.Metadata.Labels
-	asmd.Metadata = asmdMetadata
+	asmd.Type = as.Type
+	asmd.Labels = as.Labels
 
 	asmd.Tags = as.Tags
 	return asmd
@@ -74,10 +64,8 @@ func convertAssetDAOtoDTO(asmd *assetMongoDao) *abstract.Asset {
 	as.Description = asmd.Description
 	as.DependsOn = asmd.DependsOn
 
-	asMetadata := abstract.Metadata{}
-	asMetadata.TypeName = asmd.Metadata.TypeName
-	asMetadata.Labels = asmd.Metadata.Labels
-	as.Metadata = asMetadata
+	as.Type = asmd.Type
+	as.Labels = asmd.Labels
 
 	as.Tags = asmd.Tags
 

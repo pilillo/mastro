@@ -19,25 +19,31 @@ type Asset struct {
 	Description string `yaml:"description" json:"description"`
 	// the list of assets this depends on
 	DependsOn []string `yaml:"depends-on" json:"depends-on"`
-	// the actual asset metadata
-	Metadata Metadata `yaml:"metadata" json:"metadata"`
+	// asset type
+	Type AssetType `yaml:"type,omitempty" json:"type,omitempty"`
+	// labels for the specific asset
+	Labels map[string]interface{} `yaml:"labels,omitempty" json:"labels,omitempty"`
 	// tags are flags used to simplify asset search
 	Tags []string `yaml:"tags,omitempty" json:"tags,omitempty"`
 }
 
-// Metadata ... Asset metadata
-type Metadata struct {
-	// asset type - refers to the type.name
-	TypeName string `yaml:"type" json:"type"`
-	// asset attributes, key-val list
-	Labels map[string]string `yaml:"labels,omitempty" json:"labels,omitempty"`
-}
+// AssetType ... Asset type information
+type AssetType string
+const (
+	_Database AssetType = "database"
+	_Dataset = "dataset"
+	_FeatureSet = "featureset"
+	_Model = "model"
+	_Notebook = "notebook"
+	_Pipeline = "pipeline"
+	_Report = "report"
+	_Service = "service"
+	_Stream = "stream"
+	_Table = "table"
+	_User = "user"
+	_Workflow = "workflow"
+)
 
-// Type ... Asset type
-type Type struct {
-	Name string `yaml:"name" json:"name"`
-	ID   string `yaml:"id" json:"id"`
-}
 
 // ParseAsset ... Parse an asset specification file
 func ParseAsset(data []byte) (*Asset, error) {

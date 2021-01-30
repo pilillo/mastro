@@ -25,7 +25,6 @@ COPY . .
 # Build the application
 RUN go build -o mastro .
 
-
 # multistage build - we only copy the result (binary) into a fresh scratch image which is super light
 FROM scratch
 
