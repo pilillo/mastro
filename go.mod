@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/alexflint/go-arg v1.3.0
-	github.com/apache/thrift/lib/go/thrift v0.0.0-20210120171102-e27e82c46ba4 // indirect
+	github.com/apache/thrift v0.12.0
 	github.com/beltran/gosasl v0.0.0-20200816203322-2f20f217aef6 // indirect
 	github.com/colinmarc/hdfs/v2 v2.1.2-0.20200910090628-650457eb0b9d
 	github.com/elastic/go-elasticsearch v0.0.0

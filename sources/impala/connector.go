@@ -1,23 +1,27 @@
 package impala
 
-import(
+import (
 	"fmt"
 	"log"
-	"os"
-	_ "github.com/koblas/impalathing"
+	"strconv"
+	"strings"
+
+	"github.com/koblas/impalathing"
+	"github.com/pilillo/mastro/abstract"
+	"github.com/pilillo/mastro/utils/conf"
 )
 
 var requiredFields = map[string]string{
-	"host":     "host",
-	"port":     "port",
+	"host": "host",
+	"port": "port",
 }
 
 func NewImpalaConnector() *Connector {
-	return &ImpalaConnector{}
+	return &Connector{}
 }
 
 type Connector struct {
-	connection *_.Connection
+	connection *impalathing.Connection
 }
 
 func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition) error {
@@ -37,23 +41,25 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 	return nil
 }
 
-
 func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	var err error
 
 	host := def.Settings[requiredFields["host"]]
-	port := def.Settings[requiredFields["port"]]
+	port, err := strconv.Atoi(def.Settings[requiredFields["port"]])
+	if err != nil {
+		panic(err)
+	}
 
 	if def.KerberosDetails != nil {
 		options := impalathing.WithGSSAPISaslTransport()
 		c.connection, err = impalathing.Connect(host, port, options)
-	}else{
+	} else {
 		c.connection, err = impalathing.Connect(host, port)
 	}
 
 	if err != nil {
 		panic(err)
-	}	
+	}
 }
 
 func (c *Connector) CloseConnection() {
@@ -62,16 +68,15 @@ func (c *Connector) CloseConnection() {
 
 // Impala specific methods and structs
 
+func (c *Connector) ListDatabases() ([]abstract.DBInfo, error) {
+	result := []abstract.DBInfo{}
 
-func (c *Connector) ListDatabases() ([]DBInfo, error) {
-	var result = make([]DBInfo)
-	
 	query, err := c.connection.Query("show databases")
 	if err != nil {
 		return nil, err
 	}
 	for query.Next() {
-		db := DBInfo{}
+		db := abstract.DBInfo{}
 		query.Scan(&db.Name, &db.Comment)
 
 		result = append(result, db)
@@ -79,10 +84,14 @@ func (c *Connector) ListDatabases() ([]DBInfo, error) {
 	return result, nil
 }
 
-for (c *Connector) ListTables(dbName string) ([]string, error) {
-	var result = make([]string)
+func (c *Connector) ListTables(dbName string) ([]string, error) {
+	result := []string{}
 
 	query, err := c.connection.Query(fmt.Sprintf("show tables in %s", dbName))
+	if err != nil {
+		return nil, err
+	}
+
 	for query.Next() {
 		var tableName string
 		query.Scan(&tableName)
@@ -92,17 +101,17 @@ for (c *Connector) ListTables(dbName string) ([]string, error) {
 	return result, nil
 }
 
-func (c *Connector) DescribeTable(dbName string, tableName string) (map[string]abstract.ColumnInfo, error){
-	var result = make(map[string]ColumnInfo)
+func (c *Connector) DescribeTable(dbName string, tableName string) (map[string]abstract.ColumnInfo, error) {
+	var result = make(map[string]abstract.ColumnInfo)
 
 	query, err := c.connection.Query(fmt.Sprintf("describe %s.%s", dbName, tableName))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for query.Next() {
 		var cName string
-		cInfo := ColumnInfo{}
+		cInfo := abstract.ColumnInfo{}
 
 		query.Scan(&cName, &(cInfo.Type), &(cInfo.Comment))
 		result[cName] = cInfo

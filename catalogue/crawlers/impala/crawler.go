@@ -1,7 +1,14 @@
 package impala
 
 import (
-	_ "github.com/pilillo/mastro/sources/impala"
+	"github.com/pilillo/mastro/abstract"
+	"github.com/pilillo/mastro/sources/impala"
+	"github.com/pilillo/mastro/utils/conf"
+
+	"fmt"
+	"log"
+
+	"github.com/pilillo/mastro/utils/strings"
 )
 
 type impalaCrawler struct {
@@ -14,11 +21,12 @@ func NewCrawler() abstract.Crawler {
 }
 
 func (crawler *impalaCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
-	crawler.connector = impala.NewConnector()
+	crawler.connector = impala.NewImpalaConnector()
 	if err := crawler.connector.ValidateDataSourceDefinition(&cfg.DataSourceDefinition); err != nil {
 		return nil, err
 	}
 	crawler.connector.InitConnection(&cfg.DataSourceDefinition)
+	return crawler, nil
 }
 
 func (crawler *impalaCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
@@ -26,48 +34,57 @@ func (crawler *impalaCrawler) WalkWithFilter(root string, filter string) ([]abst
 
 	levels := strings.SplitAndTrim(root, "/")
 
-	var tables []string
-	
+	// create empty map of kind, db -> []tablenames
+	dbTables := map[string][]string{}
+
 	// check if a specific database and table was defined
-	if levels != nil && len(levels) > 0 {	
-		// a table is defined	
+	if levels != nil && len(levels) > 0 {
+		// a table is defined
 		if len(levels) > 1 {
 			// list only provided table by appending to list of identified ones
-			tables = []string{ levels(1) }
-		}else{
+			dbTables[levels[0]] = []string{levels[1]}
+			//tables = []string{ levels[1] }
+		} else {
 			// list all tables in provided db
-			tables, err = crawler.connector.ListTables(levels(0))
+			tables, err := crawler.connector.ListTables(levels[0])
 			if err != nil {
 				// error while accessing the sole DB we desired to access
 				return nil, err
 			}
+			dbTables[levels[0]] = tables
 		}
-	}else{
+	} else {
 		// list all databases, skip those we can't access, as may be a right issue
-		dbs, err := crawler.Connector.ListDatabases()
+		dbs, err := crawler.connector.ListDatabases()
 		if err != nil {
 			return nil, err
 		}
 		// list all tables in available dbs
-		for i, dbInfo := range dbs {
-			tables, err = crawler.connector.ListTables(dbInfo))
+		for _, dbInfo := range dbs {
+			tables, err := crawler.connector.ListTables(dbInfo.Name)
 			if err != nil {
 				// skipping DB
-				log.println(fmt.Sprintf("Error while accessing DB %s! Skipping..", dbInfo.Name))
+				log.Println(fmt.Sprintf("Error while accessing DB %s! Skipping..", dbInfo.Name))
+			} else {
+				// add all found tables to map for given db name
+				dbTables[dbInfo.Name] = tables
 			}
 		}
 	}
-	
-	// describe all tables
-	for i, tableName := range tables {
-		// map[string]abstract.ColumnInfo
-		tableSchema, err := crawler.connector.DescribeTable(dbName, tableName)
-		if err != nil {
-			log.println(fmt.Sprintf("Error while accessing %s.%s! Skipping..", dbName, tableName))
-		}else{
-			log.Printf("Found table %s.%s", dbName, tableName)
-			// convert table schema to actual Asset definition
-			
+
+	// visit each found db
+	for dbName, tableNames := range dbTables {
+		// describe each table in the db
+		for _, tableName := range tableNames {
+			// map[string]abstract.ColumnInfo
+			_, err := crawler.connector.DescribeTable(dbName, tableName)
+			if err != nil {
+				log.Print(fmt.Sprintf("Error while accessing %s.%s! Skipping..", dbName, tableName))
+			} else {
+				log.Printf("Found table %s.%s", dbName, tableName)
+				// convert table schema to actual Asset definition
+				//tableSchema
+			}
 		}
 	}
 
