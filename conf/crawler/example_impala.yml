@@ -1,0 +1,12 @@
+type: crawler
+backend:
+  name: local-impala
+  type: impala
+  crawler:
+    root-folder: ""
+    schedule-period: "seconds"
+    schedule-value: 3
+    catalogue-endpoint: "localhost:8085"
+  settings:
+    host: "localhost"
+    port: "21000"

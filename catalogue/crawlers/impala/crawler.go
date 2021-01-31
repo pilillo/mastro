@@ -38,7 +38,11 @@ func (crawler *impalaCrawler) WalkWithFilter(root string, filter string) ([]abst
 	dbTables := map[string][]string{}
 
 	// check if a specific database and table was defined
-	if levels != nil && len(levels) > 0 {
+	// N.B. golang split returns a slice with one element, the empty string so len is 1 and we gotta check it
+	// https://stackoverflow.com/questions/28330908/how-to-string-split-an-empty-string-in-go
+	if levels != nil && len(levels) > 0 && levels[0] != "" {
+		log.Printf("Provided specific db levels to locate: '%s'", root)
+
 		// a table is defined
 		if len(levels) > 1 {
 			// list only provided table by appending to list of identified ones
@@ -56,11 +60,14 @@ func (crawler *impalaCrawler) WalkWithFilter(root string, filter string) ([]abst
 	} else {
 		// list all databases, skip those we can't access, as may be a right issue
 		dbs, err := crawler.connector.ListDatabases()
+
 		if err != nil {
 			return nil, err
 		}
+
 		// list all tables in available dbs
 		for _, dbInfo := range dbs {
+			log.Println("Visiting db", dbInfo.Name)
 			tables, err := crawler.connector.ListTables(dbInfo.Name)
 			if err != nil {
 				// skipping DB

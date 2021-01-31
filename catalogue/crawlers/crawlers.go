@@ -8,19 +8,19 @@ import (
 	"github.com/jasonlvhit/gocron"
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/catalogue/crawlers/hdfs"
+	"github.com/pilillo/mastro/catalogue/crawlers/impala"
 	"github.com/pilillo/mastro/catalogue/crawlers/local"
 	"github.com/pilillo/mastro/catalogue/crawlers/s3"
-	"github.com/pilillo/mastro/catalogue/crawlers/impala"
 	"github.com/pilillo/mastro/utils/conf"
 
 	"github.com/go-resty/resty/v2"
 )
 
 var factories = map[string]func() abstract.Crawler{
-	"local": local.NewCrawler,
-	"hdfs":  hdfs.NewCrawler,
-	"s3":    s3.NewCrawler,
-	"impala" : impala.NewCrawler,
+	"local":  local.NewCrawler,
+	"hdfs":   hdfs.NewCrawler,
+	"s3":     s3.NewCrawler,
+	"impala": impala.NewCrawler,
 }
 
 var client = resty.New()
@@ -35,6 +35,7 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 		crawler = crawlerFactory()
 		// init connection on the selected crawler
 		crawler.InitConnection(cfg)
+		log.Println("Successfully initialized connection", cfg.DataSourceDefinition.Name)
 		// schedule crawler
 		//every := gocron.Every(cfg.CrawlerDefinition.ScheduleValue)
 		every := gocron.Every(cfg.DataSourceDefinition.CrawlerDefinition.ScheduleValue)
@@ -67,7 +68,8 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 			return nil, fmt.Errorf("crawler: schedule period %s not found", cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery)
 		}
 		// spawn crawler for the selected schedule period
-		every.Do(Reconcile, cfg)
+		every.Do(Reconcile, crawler, cfg)
+		log.Println("Scheduled crawler every", cfg.DataSourceDefinition.CrawlerDefinition.ScheduleValue, cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery)
 		// start gocron - move outside if we decide to start multiple crawlers within the same agent
 		<-gocron.Start()
 		return crawler, nil
@@ -77,6 +79,7 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 
 // Reconcile ... call to walkWithFilter to traverse the FS tree and post all found assets to the catalogue endpoint
 func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
+	log.Println("Running crawler", cfg.DataSourceDefinition.Name)
 	assets, err := crawler.WalkWithFilter(cfg.DataSourceDefinition.CrawlerDefinition.RootFolder, cfg.DataSourceDefinition.CrawlerDefinition.FilterFilename)
 	if err != nil {
 		log.Println(err.Error())

@@ -44,7 +44,7 @@ func parseCfg(data []byte) (*Config, error) {
 	cfg := &Config{}
 
 	err := yaml.Unmarshal(data, &cfg)
-	log.Println("Successfully loaded config", cfg.ConfigType)
+	log.Println("Successfully loaded config", cfg.ConfigType, cfg.DataSourceDefinition.Name)
 
 	return cfg, err
 }
