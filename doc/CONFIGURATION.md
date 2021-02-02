@@ -49,10 +49,11 @@ A `CrawlerDefinition` is optionally provided to the `crawler` component to deter
 ```go
 // CrawlerDefinition ... Config for a Crawler service
 type CrawlerDefinition struct {
-	RootFolder        string `yaml:"root-folder"`
+	Root              string `yaml:"root"`
 	FilterFilename    string `yaml:"filter-filename"`
 	ScheduleEvery     Period `yaml:"schedule-period"`
 	ScheduleValue     uint64 `yaml:"schedule-value"`
+	StartNow          bool   `yaml:"start-now"`
 	CatalogueEndpoint string `yaml:"catalogue-endpoint"`
 }
 ```
@@ -103,7 +104,7 @@ backend:
   name: public-minio-s3
   type: s3
   crawler:
-    root-folder: ""
+    root: ""
     filter-filename: "MANIFEST.yaml"
     schedule-period: ""
     schedule-value: 1
@@ -113,4 +114,21 @@ backend:
     access-key-id: "Q3AM3UQ867SPQQA43P2F"
     secret-access-key: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
     use-ssl: "true"
+```
+
+```yaml
+type: crawler
+backend:
+  name: local-impala
+  type: impala
+  crawler:
+    root: ""
+    schedule-period: "sunday"
+    schedule-value: 1
+    start-now: true
+    catalogue-endpoint: "localhost:8085"
+  settings:
+    host: "localhost"
+    port: "21000"
+    use-kerberos: false
 ```

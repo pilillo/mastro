@@ -37,5 +37,5 @@ type Asset struct {
 The package also provide means to parse and validate assets:
 ```go
 func ParseAsset(data []byte) (*Asset, error) {}
-func ValidateAsset(asset Asset) (*Asset, error) {}
+func (asset *Asset) Validate() error {}
 ```
