@@ -3,7 +3,7 @@ backend:
   name: public-minio-s3
   type: s3
   crawler:
-    root-folder: ""
+    root: ""
     filter-filename: "MANIFEST.yaml"
     schedule-period: "sunday"
     schedule-value: 1

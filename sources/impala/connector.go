@@ -12,8 +12,9 @@ import (
 )
 
 var requiredFields = map[string]string{
-	"host": "host",
-	"port": "port",
+	"host":         "host",
+	"port":         "port",
+	"use-kerberos": "use-kerberos",
 }
 
 func NewImpalaConnector() *Connector {
@@ -50,7 +51,8 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 		panic(err)
 	}
 
-	if def.KerberosDetails != nil {
+	// todo: convert all settings to map[string]interface{}
+	if def.Settings[requiredFields["use-kerberos"]] == "true" {
 		options := impalathing.WithGSSAPISaslTransport()
 		c.connection, err = impalathing.Connect(host, port, options)
 	} else {

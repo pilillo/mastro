@@ -19,7 +19,7 @@ func NewCrawler() abstract.Crawler {
 
 func (crawler *localCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
 	// init connection by checking whether the target path is available
-	if _, err := os.Stat(cfg.DataSourceDefinition.CrawlerDefinition.RootFolder); os.IsNotExist(err) {
+	if _, err := os.Stat(cfg.DataSourceDefinition.CrawlerDefinition.Root); os.IsNotExist(err) {
 		return nil, err
 	}
 	return crawler, nil

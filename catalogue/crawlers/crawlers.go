@@ -2,12 +2,15 @@ package crawlers
 
 import (
 	"fmt"
+	"time"
 
 	"log"
 
-	"github.com/jasonlvhit/gocron"
+	"github.com/go-co-op/gocron"
+
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/catalogue/crawlers/hdfs"
+	"github.com/pilillo/mastro/catalogue/crawlers/hive"
 	"github.com/pilillo/mastro/catalogue/crawlers/impala"
 	"github.com/pilillo/mastro/catalogue/crawlers/local"
 	"github.com/pilillo/mastro/catalogue/crawlers/s3"
@@ -21,6 +24,7 @@ var factories = map[string]func() abstract.Crawler{
 	"hdfs":   hdfs.NewCrawler,
 	"s3":     s3.NewCrawler,
 	"impala": impala.NewCrawler,
+	"hive":   hive.NewCrawler,
 }
 
 var client = resty.New()
@@ -38,7 +42,8 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 		log.Println("Successfully initialized connection", cfg.DataSourceDefinition.Name)
 		// schedule crawler
 		//every := gocron.Every(cfg.CrawlerDefinition.ScheduleValue)
-		every := gocron.Every(cfg.DataSourceDefinition.CrawlerDefinition.ScheduleValue)
+		scheduler := gocron.NewScheduler(time.UTC)
+		every := scheduler.Every(cfg.DataSourceDefinition.CrawlerDefinition.ScheduleValue)
 		switch cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery {
 		case conf.Seconds:
 			every = every.Seconds()
@@ -68,10 +73,25 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 			return nil, fmt.Errorf("crawler: schedule period %s not found", cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery)
 		}
 		// spawn crawler for the selected schedule period
-		every.Do(Reconcile, crawler, cfg)
+		_, err := every.Do(Reconcile, crawler, cfg)
+		// if err get out
+		if err != nil {
+			return nil, err
+		}
+
 		log.Println("Scheduled crawler every", cfg.DataSourceDefinition.CrawlerDefinition.ScheduleValue, cfg.DataSourceDefinition.CrawlerDefinition.ScheduleEvery)
+
+		// start a run right now if necessary
+		if cfg.DataSourceDefinition.CrawlerDefinition.StartNow {
+			log.Println("Starting first run")
+			go Reconcile(crawler, cfg)
+		}
+
 		// start gocron - move outside if we decide to start multiple crawlers within the same agent
-		<-gocron.Start()
+		//<-gocron.Start()
+		scheduler.StartAsync() // start and continue
+		//s.StartBlocking() // start scheduler and wait
+
 		return crawler, nil
 	}
 	return nil, fmt.Errorf("Impossible to find specified Crawler %s", cfg.DataSourceDefinition.Type)
@@ -80,7 +100,7 @@ func Start(cfg *conf.Config) (abstract.Crawler, error) {
 // Reconcile ... call to walkWithFilter to traverse the FS tree and post all found assets to the catalogue endpoint
 func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 	log.Println("Running crawler", cfg.DataSourceDefinition.Name)
-	assets, err := crawler.WalkWithFilter(cfg.DataSourceDefinition.CrawlerDefinition.RootFolder, cfg.DataSourceDefinition.CrawlerDefinition.FilterFilename)
+	assets, err := crawler.WalkWithFilter(cfg.DataSourceDefinition.CrawlerDefinition.Root, cfg.DataSourceDefinition.CrawlerDefinition.FilterFilename)
 	if err != nil {
 		log.Println(err.Error())
 		return

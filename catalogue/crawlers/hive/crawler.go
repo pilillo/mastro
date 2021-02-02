@@ -1,8 +1,8 @@
-package impala
+package hive
 
 import (
 	"github.com/pilillo/mastro/abstract"
-	"github.com/pilillo/mastro/sources/impala"
+	"github.com/pilillo/mastro/sources/hive"
 	"github.com/pilillo/mastro/utils/conf"
 
 	"fmt"
@@ -11,17 +11,17 @@ import (
 	"github.com/pilillo/mastro/utils/strings"
 )
 
-type impalaCrawler struct {
-	connector *impala.Connector
+type hiveCrawler struct {
+	connector *hive.Connector
 }
 
 // NewCrawler ... returns an instance of the crawler
 func NewCrawler() abstract.Crawler {
-	return &impalaCrawler{}
+	return &hiveCrawler{}
 }
 
-func (crawler *impalaCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
-	crawler.connector = impala.NewImpalaConnector()
+func (crawler *hiveCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler, error) {
+	crawler.connector = hive.NewHiveConnector()
 	if err := crawler.connector.ValidateDataSourceDefinition(&cfg.DataSourceDefinition); err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (crawler *impalaCrawler) InitConnection(cfg *conf.Config) (abstract.Crawler
 	return crawler, nil
 }
 
-func (crawler *impalaCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
+func (crawler *hiveCrawler) WalkWithFilter(root string, filter string) ([]abstract.Asset, error) {
 	var assets []abstract.Asset
 
 	levels := strings.SplitAndTrim(root, "/")

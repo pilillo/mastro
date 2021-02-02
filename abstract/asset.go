@@ -3,7 +3,6 @@ package abstract
 import (
 	"time"
 
-	"github.com/pilillo/mastro/utils/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,21 +28,21 @@ type Asset struct {
 
 // AssetType ... Asset type information
 type AssetType string
-const (
-	_Database AssetType = "database"
-	_Dataset = "dataset"
-	_FeatureSet = "featureset"
-	_Model = "model"
-	_Notebook = "notebook"
-	_Pipeline = "pipeline"
-	_Report = "report"
-	_Service = "service"
-	_Stream = "stream"
-	_Table = "table"
-	_User = "user"
-	_Workflow = "workflow"
-)
 
+const (
+	_Database   AssetType = "database"
+	_Dataset              = "dataset"
+	_FeatureSet           = "featureset"
+	_Model                = "model"
+	_Notebook             = "notebook"
+	_Pipeline             = "pipeline"
+	_Report               = "report"
+	_Service              = "service"
+	_Stream               = "stream"
+	_Table                = "table"
+	_User                 = "user"
+	_Workflow             = "workflow"
+)
 
 // ParseAsset ... Parse an asset specification file
 func ParseAsset(data []byte) (*Asset, error) {
@@ -55,7 +54,19 @@ func ParseAsset(data []byte) (*Asset, error) {
 }
 
 // Validate ... Validate asset specification file
-func (asset *Asset) Validate() *errors.RestErr {
+func (asset *Asset) Validate() error {
+
+	// validate required fields for an asset
+	// - name
+	// - assetType
+
+	// validate optional fields if any available
 
 	return nil
 }
+
+// Label types
+
+const (
+	L_SCHEMA = "schema"
+)

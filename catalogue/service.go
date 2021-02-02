@@ -45,8 +45,8 @@ func (s *assetServiceType) Init(cfg *conf.Config) *errors.RestErr {
 // UpsertAsset ... Adds and asset description
 func (s *assetServiceType) UpsertAssets(assets *[]abstract.Asset) (*[]abstract.Asset, *errors.RestErr) {
 	for _, a := range *assets {
-		if restErr := a.Validate(); restErr != nil {
-			return nil, restErr
+		if err := a.Validate(); err != nil {
+			return nil, errors.GetBadRequestError(err.Error())
 		}
 		// add last discovered date
 		a.LastDiscoveredAt = date.GetNow()

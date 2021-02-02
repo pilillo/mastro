@@ -3,10 +3,12 @@ backend:
   name: local-impala
   type: impala
   crawler:
-    root-folder: ""
-    schedule-period: "seconds"
-    schedule-value: 3
+    root: ""
+    schedule-period: "sunday"
+    schedule-value: 1
+    start-now: true
     catalogue-endpoint: "localhost:8085"
   settings:
     host: "localhost"
     port: "21000"
+    use-kerberos: false

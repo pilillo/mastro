@@ -42,7 +42,10 @@ func loadCfg() *conf.Config {
 func start() {
 	switch Cfg.ConfigType {
 	case "crawler":
-		crawlers.Start(Cfg)
+		_, err := crawlers.Start(Cfg)
+		if err != nil {
+			panic(err.Error())
+		}
 	case "catalogue":
 		catalogue.StartEndpoint(Cfg)
 	case "featurestore":
