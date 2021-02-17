@@ -21,6 +21,24 @@ type TableInfo struct {
 	Comment string
 }
 
+// Partial constructor for DBInfo
+func GetDBInfoByName(dbName string) (DBInfo, error) {
+	dbInfo := DBInfo{}
+	dbInfo.Name = dbName
+	dbInfo.Comment = ""
+	return dbInfo, nil
+}
+
+// Partial constructor for TableInfo
+func GetTableInfoByName(tableName string) (TableInfo, error) {
+
+	tableInfo := TableInfo{}
+	tableInfo.Name = tableName
+	tableInfo.Comment = ""
+
+	return tableInfo, nil
+}
+
 // structs shall be unexported by default
 type databaseBuilder struct{ asset Asset }
 

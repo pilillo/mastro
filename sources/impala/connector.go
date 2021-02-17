@@ -86,8 +86,9 @@ func (c *Connector) ListDatabases() ([]abstract.DBInfo, error) {
 	return result, nil
 }
 
-func (c *Connector) ListTables(dbName string) ([]string, error) {
-	result := []string{}
+func (c *Connector) ListTables(dbName string) ([]abstract.TableInfo, error) {
+	//result := []string{}
+	result := []abstract.TableInfo{}
 
 	query, err := c.connection.Query(fmt.Sprintf("show tables in %s", dbName))
 	if err != nil {
@@ -97,7 +98,12 @@ func (c *Connector) ListTables(dbName string) ([]string, error) {
 	for query.Next() {
 		var tableName string
 		query.Scan(&tableName)
-		result = append(result, tableName)
+		//result = append(result, tableName)
+		tableInfo, err := abstract.GetTableInfoByName(tableName)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, tableInfo)
 	}
 
 	return result, nil

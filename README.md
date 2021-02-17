@@ -14,6 +14,12 @@
 ## Data What?
 ![ML Process](img/ml_dev_process.png)
 
+## Goals
+Managing Metadata to achieve:
+- Lineage - understanding data dependencies
+- Quality - enrich data with dependability information
+- Democratization - foster self-service culture
+
 ## Disclaimer
 
 Mastro is still on development and largely untested. Please fork the repo and extend it at wish.
