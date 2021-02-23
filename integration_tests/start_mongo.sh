@@ -1,6 +1,6 @@
 export DB_USERNAME=mongo
 export DB_PASSWORD=test
-export DB_SCHEMA=features
+export DB_SCHEMA=mastro
 
 
 docker run -d \

@@ -20,6 +20,11 @@ Managing Metadata to achieve:
 - Quality - enrich data with dependability information
 - Democratization - foster self-service culture
 
+Providing a data transformation layer to foster:
+- Reuse - of domain specific knowledge and pre-computed features in different use cases
+- Enforcing - of established industry or domain-specific transformations and practices
+- Interaction - between different roles through teams and projects
+
 ## Disclaimer
 
 Mastro is still on development and largely untested. Please fork the repo and extend it at wish.
