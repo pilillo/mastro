@@ -34,7 +34,7 @@ func loadCfg() *conf.Config {
 		arg.MustParse(&conf.Args)
 	}
 	// load config from file
-	return conf.Load(conf.Args.ConfigPath)
+	return conf.Load(conf.Args.Config)
 }
 
 func start() {

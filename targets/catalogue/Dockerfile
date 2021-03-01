@@ -1,5 +1,5 @@
 # https://github.com/moby/moby/issues/37345
-ARG ARTIFACT=mastro
+ARG ARTIFACT=mastro-catalogue
 
 # https://levelup.gitconnected.com/complete-guide-to-create-docker-container-for-your-golang-application-80f3fb59a15e
 FROM golang:1.15-alpine AS builder
@@ -19,10 +19,6 @@ WORKDIR /build
 
 RUN apk add --no-cache git make build-base krb5-pkinit krb5-dev krb5
 
-#ARG DEBIAN_FRONTEND=noninteractive
-#RUN apt-get update && apt-get install -y krb5-user libkrb5-dev 
-##libgssapi-krb5-2 libsasl2-modules-gssapi-mit
-
 # Copy and download dependency using go mod
 COPY go.mod .
 COPY go.sum .
@@ -35,7 +31,6 @@ COPY . .
 RUN go build -tags=kerberos -o ${ARTIFACT} .
 
 # multistage build - we only copy the result (binary) into a fresh image which is super light
-#FROM scratch - messy to setup since it has no sh
 FROM alpine:3.12.4
 ARG ARTIFACT
 ENV ARTIFACT=${ARTIFACT}
@@ -44,7 +39,7 @@ ENV ARTIFACT=${ARTIFACT}
 COPY --from=builder /build/${ARTIFACT} ./
 
 # set default vars
-ENV MASTRO_CONFIG=/conf
+ENV MASTRO_CONFIG=/conf/catalogue/
 
 # set config.yaml using wget or local copy
 COPY conf $MASTRO_CONFIG
