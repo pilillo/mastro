@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       #run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-      run: sh build_target.sh catalogue
+      run: ./build_target.sh catalogue
