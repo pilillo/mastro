@@ -9,7 +9,7 @@
   (__)       ()__________)	\_|  |_/\__,_|___/\__|_|  \___/ 
 ```
 ---
-👷 Data and Feature Catalogue in Go
+👷 Data and Feature Catalogue in Go 
 
 ## Data What?
 ![ML Process](img/ml_dev_process.png)
@@ -40,3 +40,7 @@ Terminology:
 Help:
 * [PlantUML Diagram of the repo](https://www.dumels.com/diagram/2e5f820a-1822-4852-8259-4811deefa789)
 * [Configuration](doc/CONFIGURATION.md)
+
+Status:
+
+[![Docker Image CI](https://github.com/pilillo/mastro/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/pilillo/mastro/actions/workflows/docker-image.yml)
