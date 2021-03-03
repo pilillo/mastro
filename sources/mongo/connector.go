@@ -13,12 +13,18 @@ import (
 )
 
 var requiredFields = map[string]string{
-	"username": "username",
-	"password": "password",
-	"host":     "host",
 	// surely needed the DB and the target collection
 	"database":   "database",
 	"collection": "collection",
+}
+
+var optionalFields = map[string]string{
+	// connect either by providing the credentials separately
+	"username": "username",
+	"password": "password",
+	"host":     "host",
+	// or else by specifying the connection string
+	"connectionString": "connection-string",
 }
 
 // NewMongoConnector ... Factory
@@ -55,15 +61,22 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 
 // InitConnection ... Instantiate the connection with the remote DB
 func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
+	var connectionString string
+	var exist bool
 
-	// todo: mongo connection string varies a lot, maybe just pass that from a secret rather than composing it here??
-	connectionString := fmt.Sprintf(
-		"mongodb://%s:%s@%s",
-		def.Settings[requiredFields["username"]],
-		def.Settings[requiredFields["password"]],
-		def.Settings[requiredFields["host"]],
-	)
-	log.Println("Connecting to", connectionString)
+	// if connectionString is provided then use it
+	if connectionString, exist = def.Settings[optionalFields["connectionString"]]; exist {
+		log.Println("Using provided connection string")
+	} else {
+		log.Println("No connection string, building from mandatory fields")
+		// todo: mongo connection string varies a lot, maybe just pass the whole string from a secret rather than composing it here??
+		connectionString = fmt.Sprintf(
+			"mongodb://%s:%s@%s",
+			def.Settings[optionalFields["username"]],
+			def.Settings[optionalFields["password"]],
+			def.Settings[optionalFields["host"]],
+		)
+	}
 
 	var err error
 	ctx := context.Background()
