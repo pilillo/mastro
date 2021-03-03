@@ -59,14 +59,14 @@ func (c *Connector) ValidateDataSourceDefinition(def *conf.DataSourceDefinition)
 func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 	redisConf := &redis.Options{}
 
-	redisHost := def.Settings.Values[requiredFields["redisHost"]]
+	redisHost := def.Settings[requiredFields["redisHost"]]
 	//stringutils.SplitAndTrim(def.Settings.Values[requiredFields["redisHost"]], ",")
 
 	redisConf.Addr = redisHost
 	redisConf.Username = def.Settings[requiredFields["redisUser"]]
 	redisConf.Password = def.Settings[requiredFields["redisPwd"]]
 	// assuming we did already validate the conversion to int
-	redisConf.DB, _ = strconv.Atoi(def.Settings.Values[requiredFields["redisDb"]])
+	redisConf.DB, _ = strconv.Atoi(def.Settings[requiredFields["redisDb"]])
 
 	c.Client = redis.NewClient(redisConf)
 }

@@ -162,6 +162,10 @@ func (dao *dao) checkIndex(def *conf.DataSourceDefinition) error {
 func (dao *dao) Init(def *conf.DataSourceDefinition) {
 	// create connector
 	dao.Connector = elastic.NewElasticConnector()
+	// validate data source definition
+	if err := dao.Connector.ValidateDataSourceDefinition(def); err != nil {
+		panic(err)
+	}
 	// init connector
 	dao.Connector.InitConnection(def)
 	// make sure the target index exists

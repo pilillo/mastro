@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/utils/conf"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +39,7 @@ func TestWalk(t *testing.T) {
 	t.Log("TestWalk running")
 	assert := assert.New(t)
 
-	bucketName := cfg.DataSourceDefinition.Settings.Values["bucket"]
+	bucketName := cfg.DataSourceDefinition.Settings["bucket"]
 	// create bucket if not existing
 	crawler.GetClient().MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 
@@ -57,7 +58,7 @@ func TestWalk(t *testing.T) {
 	assert.NotEqual(size, 0)
 
 	// test walk function
-	fs, err := crawler.WalkWithFilter(crawler.connector.Prefix, crawler.config.FilterFilename)
+	fs, err := crawler.WalkWithFilter(crawler.connector.Prefix, abstract.DefaultManifestFilename)
 
 	assert.Equal(err, nil)
 	assert.NotEqual(fs, nil)

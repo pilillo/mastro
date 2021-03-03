@@ -130,6 +130,10 @@ func GetSingleton() abstract.FeatureSetDAOProvider {
 func (dao *mongoDAO) Init(def *conf.DataSourceDefinition) {
 	// create mongo connector
 	dao.Connector = mongo.NewMongoConnector()
+	// validate data source definition
+	if err := dao.Connector.ValidateDataSourceDefinition(def); err != nil {
+		panic(err)
+	}
 	// init mongo connector
 	dao.Connector.InitConnection(def)
 }

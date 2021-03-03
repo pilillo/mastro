@@ -35,8 +35,6 @@ type assetMongoDao struct {
 	Tags []string `bson:"tags,omitempty"`
 }
 
-
-
 func convertAssetDTOtoDAO(as *abstract.Asset) *assetMongoDao {
 	asmd := &assetMongoDao{}
 
@@ -101,6 +99,9 @@ func GetSingleton() abstract.AssetDAOProvider {
 // Init ... Initialize connection to elastic search and target index
 func (dao *dao) Init(def *conf.DataSourceDefinition) {
 	dao.Connector = mongo.NewMongoConnector()
+	if err := dao.Connector.ValidateDataSourceDefinition(def); err != nil {
+		panic(err)
+	}
 	dao.Connector.InitConnection(def)
 }
 

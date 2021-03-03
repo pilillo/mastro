@@ -8,4 +8,5 @@ backend:
     username: mongo
     password: test
     host: "localhost:27017"
-    schema: mastro
+    database: mastro
+    collection: mastro-featurestore
