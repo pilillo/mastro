@@ -31,12 +31,12 @@ if [ -z ${ORGANIZATION} ] || [ -z ${TARGET} ]; then
   exit
 fi
 
-go_build() {
+go_static_build() {
   export GO111MODULE=on
   export CGO_ENABLED=0
   export GOOS=linux
   export GOARCH=amd64
-  go build -o ${ARTIFACT} ${LOCATION}
+  go build -tags=kerberos -o ${ARTIFACT} ${LOCATION}
   echo "Compiled ${ARTIFACT} from ${LOCATION}"
 }
 
@@ -55,7 +55,7 @@ if [ "${TARGET}" == "all" ]; then
   LOCATION="."
   IMAGE=${ORGANIZATION}/${PROJECT}
   if [ ${STATIC} ]; then
-    go_build
+    go_static_build
     # move artifact to a fresh docker image
     BUILD_TAG=${BUILD_TAG}-static
     docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG} -f Dockerfile.static .
@@ -74,7 +74,7 @@ elif [ -d "${TARGETS_DIR}/${TARGET}" ]; then
   IMAGE=${ORGANIZATION}/${PROJECT}-${TARGET}
 
   if [ ${STATIC} ]; then
-    go_build
+    go_static_build
     # move artifact to a fresh docker image
     BUILD_TAG=${BUILD_TAG}-static
     docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG} -f Dockerfile.static .
