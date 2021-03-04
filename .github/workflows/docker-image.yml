@@ -28,6 +28,7 @@ jobs:
       run: |
         sudo apt-get install libkrb5-dev
         go get -tags=kerberos github.com/beltran/gosasl
+        go get -tags=kerberos github.com/beltran/gohive
 
     - name: Build the Docker image
       run: |
