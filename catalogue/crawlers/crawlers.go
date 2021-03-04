@@ -113,7 +113,10 @@ func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 		SetBody(assets).
 		Post(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
 		//Put(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
 	// print response
-	log.Println("Post to catalogue:", resp)
-
+	log.Println("Catalogue response:", resp.Body())
 }
