@@ -31,12 +31,21 @@ if [ -z ${ORGANIZATION} ] || [ -z ${TARGET} ]; then
   exit
 fi
 
+# in static builds - include kerberos support (for crawlers only)
+# can be overridden
+#GO_BUILD_TAGS="${GO_BUILD_TAGS:--tags=kerberos}"
+GO_BUILD_TAGS="${GO_BUILD_TAGS:-}"
+
 go_static_build() {
+  # go module always on since we use it
   export GO111MODULE=on
+  # static build by disabling CGO
   export CGO_ENABLED=0
+  # info for cross compilation
   export GOOS=linux
   export GOARCH=amd64
-  go build -tags=kerberos -o ${ARTIFACT} ${LOCATION}
+  echo "Running - go build ${GO_BUILD_TAGS} -o ${ARTIFACT} ${LOCATION}"
+  go build ${GO_BUILD_TAGS} -o ${ARTIFACT} ${LOCATION}
   echo "Compiled ${ARTIFACT} from ${LOCATION}"
 }
 
@@ -53,6 +62,7 @@ dhub_push() {
   fi
 }
 
+# default build tag
 BUILD_TAG=$(date +%Y%m%d)
 
 if [ "${TARGET}" == "all" ]; then
@@ -84,7 +94,6 @@ elif [ -d "${TARGETS_DIR}/${TARGET}" ]; then
     # move artifact to a fresh docker image
     BUILD_TAG=${BUILD_TAG}-static
     docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG} -f Dockerfile.static .
-    #-f ${TARGETS_DIR}/${TARGET}/Dockerfile.static .
   else
     docker build -t ${IMAGE}:${BUILD_TAG} -f ${TARGETS_DIR}/${TARGET}/Dockerfile .
   fi

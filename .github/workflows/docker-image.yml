@@ -24,19 +24,17 @@ jobs:
       with:
         go-version: 1.15
 
-    - name: Install krb5 and gosasl
-      run: |
-        sudo apt-get install libkrb5-dev
-        go get -tags=kerberos github.com/beltran/gosasl
-        go get -tags=kerberos github.com/beltran/gohive
+    #- name: Install krb5 and gosasl
+    #  run: |
+    #    sudo apt-get install libkrb5-dev
+    #    go get -tags=kerberos github.com/beltran/gosasl
+    #    go get -tags=kerberos github.com/beltran/gohive
 
     - name: Build the Docker image
       run: |
-        ./build_target.sh -t all -o ${{ secrets.DOCKERHUB_USER }} --static --push
-        ./build_target.sh -t catalogue -o ${{ secrets.DOCKERHUB_USER }} --static --push
-        ./build_target.sh -t featurestore -o ${{ secrets.DOCKERHUB_USER }} --static --push
-        ./build_target.sh -t crawlers -o ${{ secrets.DOCKERHUB_USER }} --static --push
-        ./build_target.sh -t all -o ${{ secrets.DOCKERHUB_USER }} --push
-        ./build_target.sh -t catalogue -o ${{ secrets.DOCKERHUB_USER }} --push
-        ./build_target.sh -t featurestore -o ${{ secrets.DOCKERHUB_USER }} --push
+        # statically built ones use CGO_ENABLED=0
+        GO_BUILD_TAGS="" ./build_target.sh -t all -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        GO_BUILD_TAGS="" ./build_target.sh -t catalogue -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        GO_BUILD_TAGS="" ./build_target.sh -t featurestore -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        # dynamically built ones use CGO_ENABLED=1
         ./build_target.sh -t crawlers -o ${{ secrets.DOCKERHUB_USER }} --push

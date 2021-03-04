@@ -17,7 +17,8 @@ ENV GO111MODULE=on \
 # Move to working directory /build
 WORKDIR /build
 
-RUN apk add --no-cache git make build-base krb5-pkinit krb5-dev krb5
+RUN apk add --no-cache build-base krb5 krb5-dev
+#krb5-pkinit
 
 # Copy and download dependency using go mod
 COPY go.mod .
@@ -35,16 +36,16 @@ FROM alpine:3.12.4
 ARG ARTIFACT
 ENV ARTIFACT=${ARTIFACT}
 
+RUN apk add --no-cache krb5 krb5-dev
 # copy binary
 COPY --from=builder /build/${ARTIFACT} ./
 
 # set default vars
 ENV MASTRO_CONFIG=/conf/catalogue/
+ENV GIN_MODE=release
 
 # set config.yaml using wget or local copy
 COPY conf $MASTRO_CONFIG
-
-ENV GIN_MODE=release
 
 # Command to run when starting the container
 ENTRYPOINT ["sh", "-c", "./${ARTIFACT}"]

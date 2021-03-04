@@ -28,7 +28,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN go build -tags=kerberos -o ${ARTIFACT} .
+RUN go build -o ${ARTIFACT} .
 
 # multistage build - we only copy the result (binary) into a fresh image which is super light
 FROM alpine:3.12.4
