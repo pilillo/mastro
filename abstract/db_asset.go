@@ -86,6 +86,9 @@ func (b *tableBuilder) SetDescription(description string) *tableBuilder {
 }
 
 func (b *tableBuilder) SetSchema(schema map[string]ColumnInfo) *tableBuilder {
+	if b.asset.Labels == nil {
+		b.asset.Labels = make(map[string]interface{})
+	}
 	b.asset.Labels[L_SCHEMA] = schema
 	return b
 }
