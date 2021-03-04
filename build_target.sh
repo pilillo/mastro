@@ -40,11 +40,17 @@ go_static_build() {
   echo "Compiled ${ARTIFACT} from ${LOCATION}"
 }
 
+# decide whether to push a latest and latest-static tag (can be disabled from outside)
+PUSH_LATEST="${PUSH_LATEST:-true}"
+
 dhub_push() {
   docker push ${IMAGE}:${BUILD_TAG}
-  docker image tag ${IMAGE}:${BUILD_TAG} ${IMAGE}:latest
-  docker push ${IMAGE}:latest
   echo "pushed ${IMAGE}:${BUILD_TAG}"
+  if [ ${PUSH_LATEST} ]; then
+    LATEST="latest"$([[ $test == *"static" ]] && echo "-static")
+    docker image tag ${IMAGE}:${BUILD_TAG} ${IMAGE}:${LATEST}
+    docker push ${IMAGE}:${LATEST}
+  fi
 }
 
 BUILD_TAG=$(date +%Y%m%d)
