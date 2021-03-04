@@ -21,7 +21,7 @@ jobs:
     
     - name: Build the Docker image
       run: |
-        go get -tags kerberos github.com/beltran/gosasl
+        go get -tags=kerberos github.com/beltran/gosasl
         ./build_target.sh -t all -o ${{ secrets.DOCKERHUB_USER }} --static --push
         ./build_target.sh -t catalogue -o ${{ secrets.DOCKERHUB_USER }} --static --push
         ./build_target.sh -t featurestore -o ${{ secrets.DOCKERHUB_USER }} --static --push

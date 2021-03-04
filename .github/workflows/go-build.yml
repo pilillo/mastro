@@ -24,7 +24,7 @@ jobs:
         CGO_ENABLED=0
         GOOS=linux
         GOARCH=amd64
-        go build -o mastro
+        go build -tags=kerberos -o mastro .
 
     #- name: Test
     #  run: go test -v ./...
