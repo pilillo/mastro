@@ -21,7 +21,7 @@ jobs:
     
     - name: Build the Docker image
       run: |
-        ./build_target.sh all ${{ secrets.DOCKERHUB_USER }} push
-        ./build_target.sh catalogue ${{ secrets.DOCKERHUB_USER }} push
-        ./build_target.sh featurestore ${{ secrets.DOCKERHUB_USER }} push
-        ./build_target.sh crawlers ${{ secrets.DOCKERHUB_USER }} push
+        ./build_target.sh -t all -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        ./build_target.sh -t catalogue -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        ./build_target.sh -t featurestore -o ${{ secrets.DOCKERHUB_USER }} --static --push
+        ./build_target.sh -t crawlers -o ${{ secrets.DOCKERHUB_USER }} --static --push

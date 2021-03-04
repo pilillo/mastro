@@ -1,0 +1,15 @@
+FROM scratch
+
+ARG ARTIFACT=mastro
+
+ARG PORT=8085
+EXPOSE $PORT
+
+# set default vars
+ENV MASTRO_CONFIG=/conf
+ENV GIN_MODE=release
+
+COPY ${ARTIFACT} ./mastro
+COPY conf $MASTRO_CONFIG
+
+ENTRYPOINT ["./mastro"]
