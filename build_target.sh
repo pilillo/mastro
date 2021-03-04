@@ -57,7 +57,8 @@ if [ "${TARGET}" == "all" ]; then
   if [ ${STATIC} ]; then
     go_build
     # move artifact to a fresh docker image
-    docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG}-static -f Dockerfile.static .
+    BUILD_TAG=${BUILD_TAG}-static
+    docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG} -f Dockerfile.static .
   else
     docker build -t ${IMAGE}:${BUILD_TAG} -f Dockerfile .
   fi
@@ -71,11 +72,12 @@ elif [ -d "${TARGETS_DIR}/${TARGET}" ]; then
   ARTIFACT=${PROJECT}
   LOCATION="./${TARGETS_DIR}/${TARGET}"
   IMAGE=${ORGANIZATION}/${PROJECT}-${TARGET}
-  
+
   if [ ${STATIC} ]; then
     go_build
     # move artifact to a fresh docker image
-    docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG}-static -f Dockerfile.static .
+    BUILD_TAG=${BUILD_TAG}-static
+    docker build --build-arg ARTIFACT -t ${IMAGE}:${BUILD_TAG} -f Dockerfile.static .
     #-f ${TARGETS_DIR}/${TARGET}/Dockerfile.static .
   else
     docker build -t ${IMAGE}:${BUILD_TAG} -f ${TARGETS_DIR}/${TARGET}/Dockerfile .
