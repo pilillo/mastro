@@ -34,4 +34,6 @@ Help:
 
 Status:
 
+[![Go Build](https://github.com/pilillo/mastro/actions/workflows/go-build.yml/badge.svg)](https://github.com/pilillo/mastro/actions/workflows/go-build.yml)
 [![Docker Image CI](https://github.com/pilillo/mastro/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/pilillo/mastro/actions/workflows/docker-image.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
