@@ -117,6 +117,8 @@ func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 		log.Println(err.Error())
 		return
 	}
-	// print response
-	log.Println("Catalogue response:", resp.Body())
+	// print response info
+	ti := resp.Request.TraceInfo()
+
+	log.Println("Catalogue response", "status:", resp.Status(), resp.StatusCode(), "time:", ti.ResponseTime, "body", resp)
 }
