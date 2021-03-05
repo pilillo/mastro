@@ -111,8 +111,8 @@ func Reconcile(crawler abstract.Crawler, cfg *conf.Config) {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(assets).
-		Post(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
-		//Put(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
+		//Post(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
+		Put(cfg.DataSourceDefinition.CrawlerDefinition.CatalogueEndpoint)
 	if err != nil {
 		log.Println(err.Error())
 		return
