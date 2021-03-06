@@ -76,9 +76,14 @@ func (s *featureSetServiceType) GetFeatureSetByName(fsName string) (*abstract.Fe
 
 // ListAllFeatureSets ... Retrieves all FeatureSets
 func (s *featureSetServiceType) ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr) {
-	fset, err := dao.ListAllFeatureSets()
+	fsets, err := dao.ListAllFeatureSets()
 	if err != nil {
 		return nil, errors.GetInternalServerError(err.Error())
 	}
-	return fset, nil
+	// n.b. - fsets empty if collection is empty
+	// better to return an error or an empty list?
+	if fsets == nil || len(*fsets) == 0 {
+		return nil, errors.GetNotFoundError("No feature sets in given collection")
+	}
+	return fsets, nil
 }

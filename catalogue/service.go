@@ -93,7 +93,6 @@ func (s *assetServiceType) ListAllAssets() (*[]abstract.Asset, *errors.RestErr) 
 	if err != nil {
 		return nil, errors.GetInternalServerError(err.Error())
 	}
-	log.Println("assets", assets)
 	// n.b. - assets empty if collection is empty
 	// better to return an error or an empty list?
 	if assets == nil || len(*assets) == 0 {
