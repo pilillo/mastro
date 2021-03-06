@@ -13,7 +13,9 @@ import (
 const (
 	assetsRestEndpoint string = "assets"
 	assetRestEndpoint  string = "asset"
-	assetIDParam       string = "asset_id"
+	// placeholders for the values actually passed to the endpoint
+	assetIDParam   string = "asset_id"
+	assetNameParam string = "asset_name"
 )
 
 // Ping ... replies to a ping message for healthcheck purposes
@@ -66,7 +68,7 @@ func GetAssetByID(c *gin.Context) {
 
 // GetAssetByName ... retrieves an asset description by its Unique Name
 func GetAssetByName(c *gin.Context) {
-	nameID := c.Param(assetIDParam)
+	nameID := c.Param(assetNameParam)
 	asset, getErr := assetService.GetAssetByName(nameID)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
@@ -95,16 +97,17 @@ func StartEndpoint(cfg *conf.Config) {
 	// add an healthcheck for the endpoint
 	router.GET(fmt.Sprintf("healthcheck/%s", assetRestEndpoint), Ping)
 
-	// get asset set as asset/id
-	router.GET(fmt.Sprintf("%s/:%s", assetRestEndpoint, assetIDParam), GetAssetByID)
+	// get specific asset as asset/:id or asset/:name
+	router.GET(fmt.Sprintf("%s/id/:%s", assetRestEndpoint, assetIDParam), GetAssetByID)
+	router.GET(fmt.Sprintf("%s/name/:%s", assetRestEndpoint, assetNameParam), GetAssetByName)
 
-	// put asset as asset/
+	// put 1 asset as asset/
 	router.PUT(fmt.Sprintf("%s/", assetRestEndpoint), UpsertAsset)
-	// put assets as asset/
+	// put n assets as asset/
 	router.PUT(fmt.Sprintf("%s/", assetsRestEndpoint), BulkUpsert)
 
 	// list all assets
-	router.GET(fmt.Sprintf("%s/", assetRestEndpoint), ListAllAssets)
+	router.GET(fmt.Sprintf("%s/", assetsRestEndpoint), ListAllAssets)
 
 	// run router as standalone service
 	// todo: do we need to run multiple endpoints from the main?

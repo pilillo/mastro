@@ -14,6 +14,7 @@ import (
 const (
 	featureSetRestEndpoint string = "featureset"
 	featureSetIDParam      string = "featureset_id"
+	featureSetNameParam    string = "featureset_name"
 )
 
 // Ping ... replies to a ping message for healthcheck purposes
@@ -65,6 +66,24 @@ func GetFeatureSetByID(c *gin.Context) {
 	//}
 }
 
+// GetFeatureSetByName ... retrieves a featureSet by the provided Name
+func GetFeatureSetByName(c *gin.Context) {
+	//id, err := parseFeatureSetName(c.Param(featureSetNameParam))
+	name := c.Param(featureSetNameParam)
+	/*
+		if err != nil {
+			c.JSON(err.Status, err)
+		} else {
+	*/
+	fs, getErr := featureSetService.GetFeatureSetByName(name)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
+	} else {
+		c.JSON(http.StatusOK, fs)
+	}
+	//}
+}
+
 // ListAllFeatureSets ... lists all featuresets in the DB
 func ListAllFeatureSets(c *gin.Context) {
 	fsets, err := featureSetService.ListAllFeatureSets()
@@ -86,8 +105,10 @@ func StartEndpoint(cfg *conf.Config) {
 	// add an healthcheck for the endpoint
 	router.GET(fmt.Sprintf("healthcheck/%s", featureSetRestEndpoint), Ping)
 
-	// get feature set as featureset/fs_id
-	router.GET(fmt.Sprintf("%s/:%s", featureSetRestEndpoint, featureSetIDParam), GetFeatureSetByID)
+	// get feature set as featureset/id/:fs_id with :fs_id being a placeholder for the value passed
+	router.GET(fmt.Sprintf("%s/id/:%s", featureSetRestEndpoint, featureSetIDParam), GetFeatureSetByID)
+	// get feature set as featureset/name/:fs_name with :fs_name being a placeholder for the value passed
+	router.GET(fmt.Sprintf("%s/name/:%s", featureSetRestEndpoint, featureSetNameParam), GetFeatureSetByName)
 
 	// put feature set as featureset/
 	router.PUT(fmt.Sprintf("%s/", featureSetRestEndpoint), CreateFeatureSet)

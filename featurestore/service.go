@@ -14,6 +14,7 @@ type Service interface {
 	Init(cfg *conf.Config) *errors.RestErr
 	CreateFeatureSet(fs abstract.FeatureSet) (*abstract.FeatureSet, *errors.RestErr)
 	GetFeatureSetByID(fsID string) (*abstract.FeatureSet, *errors.RestErr)
+	GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr)
 	ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr)
 }
 
@@ -64,11 +65,14 @@ func (s *featureSetServiceType) GetFeatureSetByID(fsID string) (*abstract.Featur
 	return fset, nil
 }
 
-/*
-func (s *FeatureSetServiceType) GetFeatureSetByTagsAndTime() {
-
+// GetFeatureSetByName ... Retrieves a FeatureSet
+func (s *featureSetServiceType) GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr) {
+	fset, err := dao.GetByName(fsName)
+	if err != nil {
+		return nil, errors.GetNotFoundError(err.Error())
+	}
+	return fset, nil
 }
-*/
 
 // ListAllFeatureSets ... Retrieves all FeatureSets
 func (s *featureSetServiceType) ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr) {

@@ -89,9 +89,15 @@ func (s *assetServiceType) SearchAssetsByTags(tags []string) (*[]abstract.Asset,
 
 // ListAllAssets ... Retrieves all stored assets
 func (s *assetServiceType) ListAllAssets() (*[]abstract.Asset, *errors.RestErr) {
-	asset, err := dao.ListAllAssets()
+	assets, err := dao.ListAllAssets()
 	if err != nil {
 		return nil, errors.GetInternalServerError(err.Error())
 	}
-	return asset, nil
+	log.Println("assets", assets)
+	// n.b. - assets empty if collection is empty
+	// better to return an error or an empty list?
+	if assets == nil || len(*assets) == 0 {
+		return nil, errors.GetNotFoundError("No assets in given collection")
+	}
+	return assets, nil
 }

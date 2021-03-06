@@ -72,6 +72,7 @@ func convertAssetDAOtoDTO(asmd *assetMongoDao) *abstract.Asset {
 
 func convertAllAssets(inAssets *[]assetMongoDao) []abstract.Asset {
 	var assets []abstract.Asset
+
 	for _, element := range *inAssets {
 		assets = append(assets, *convertAssetDAOtoDTO(&element))
 	}
@@ -172,10 +173,11 @@ func (dao *dao) GetById(id string) (*abstract.Asset, error) {
 
 // GetByName ... Retrieve document by given name
 func (dao *dao) GetByName(name string) (*abstract.Asset, error) {
-	filter := bson.D{{"name", name}}
+	filter := bson.M{"name": name}
 	return dao.getOneDocumentUsingFilter(filter)
 }
 
+// SearchAssetsByTags ... Retrieve assets by given tags
 func (dao *dao) SearchAssetsByTags(tags []string) (*[]abstract.Asset, error) {
 	// https://www.mongodb.com/blog/post/quick-start-golang--mongodb--data-aggregation-pipeline
 	// https://docs.mongodb.com/manual/tutorial/query-arrays/#match-an-array
@@ -185,9 +187,9 @@ func (dao *dao) SearchAssetsByTags(tags []string) (*[]abstract.Asset, error) {
 	return dao.getAnyDocumentUsingFilter(filter)
 }
 
-// ListAllFeatureSets ... Return all assets in index
+// ListAllAssets ... Return all assets in index
 func (dao *dao) ListAllAssets() (*[]abstract.Asset, error) {
-	filter := bson.D{{}}
+	filter := bson.M{}
 	return dao.getAnyDocumentUsingFilter(filter)
 }
 

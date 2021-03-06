@@ -306,6 +306,40 @@ func (dao *dao) GetById(id string) (*abstract.FeatureSet, error) {
 	return nil, fmt.Errorf("No document found for id %s", id)
 }
 
+// GetByName ... Retrieve document by given name
+func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
+
+	var buf bytes.Buffer
+	// use a term query to do an exact match of the name
+	// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"term": map[string]interface{}{
+				"name": name,
+			},
+		},
+	}
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return nil, fmt.Errorf("Error encoding query: %s", err)
+	}
+
+	searchResponse, err := dao.search(&buf)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("GetByName :: Retrieved", searchResponse.Hits.Total.Value, "documents")
+	if searchResponse.Hits.Total.Value > 0 {
+		hitDocs, err := convertDocumentsToFeatureSetCollection(searchResponse.Hits.Hits)
+		if err != nil {
+			return nil, err
+		}
+		return &((*hitDocs)[0]), nil
+	}
+	// else return an empty feature set
+	return nil, fmt.Errorf("No document found for name %s", name)
+}
+
 // ListAllFeatureSets ... Return all featuresets in index
 func (dao *dao) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
 

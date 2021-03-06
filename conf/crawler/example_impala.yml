@@ -7,7 +7,7 @@ backend:
     schedule-period: "sunday"
     schedule-value: 1
     start-now: true
-    catalogue-endpoint: "localhost:8085"
+    catalogue-endpoint: "http://localhost:8085/assets"
   settings:
     host: "localhost"
     port: "21000"

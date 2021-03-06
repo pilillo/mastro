@@ -15,35 +15,32 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// FeatureSetMongoDao ... DAO for the FeatureSet in Mongo
-type FeatureSetMongoDao struct {
+// featureSetMongoDao ... DAO for the FeatureSet in Mongo
+type featureSetMongoDao struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	InsertedAt  time.Time          `bson:"inserted-at,omitempty"`
 	Version     string             `bson:"version,omitempty"`
-	Features    []FeatureMongoDao  `bson:"features,omitempty"`
+	Features    []featureMongoDao  `bson:"features,omitempty"`
 	Description string             `bson:"description,omitempty"`
 	Labels      map[string]string  `bson:"labels,omitempty"`
 }
 
-// VersionMongoDao ... definition of version for a feature set
-type VersionMongoDao struct{}
-
-// FeatureMongoDao ... a named variable with a data type
-type FeatureMongoDao struct {
+// featureMongoDao ... a named variable with a data type
+type featureMongoDao struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty"`
 	Name     string             `bson:"name,omitempty"`
 	Value    interface{}        `bson:"value,omitempty"`
 	DataType string             `bson:"data-type,omitempty"`
 }
 
-type mongoDAO struct {
+type dao struct {
 	Connector *mongo.Connector
 }
 
 var timeout = 5 * time.Second
 
-func convertFeatureDTOtoDAO(f *abstract.Feature) *FeatureMongoDao {
-	fmd := &FeatureMongoDao{}
+func convertFeatureDTOtoDAO(f *abstract.Feature) *featureMongoDao {
+	fmd := &featureMongoDao{}
 
 	//fmd.ID = f.ID // not set at time of insert
 	fmd.Name = f.Name
@@ -53,14 +50,14 @@ func convertFeatureDTOtoDAO(f *abstract.Feature) *FeatureMongoDao {
 	return fmd
 }
 
-func convertFeatureSetDTOtoDAO(fs *abstract.FeatureSet) *FeatureSetMongoDao {
-	fsmd := &FeatureSetMongoDao{}
+func convertFeatureSetDTOtoDAO(fs *abstract.FeatureSet) *featureSetMongoDao {
+	fsmd := &featureSetMongoDao{}
 
 	//fsmd.ID = fs.ID // not set at time of insert
 	fsmd.InsertedAt = fs.InsertedAt
 	fsmd.Version = fs.Version
 
-	var feats []FeatureMongoDao
+	var feats []featureMongoDao
 	for _, element := range fs.Features {
 		feats = append(feats, *convertFeatureDTOtoDAO(&element))
 	}
@@ -72,7 +69,7 @@ func convertFeatureSetDTOtoDAO(fs *abstract.FeatureSet) *FeatureSetMongoDao {
 	return fsmd
 }
 
-func convertFeatureDAOToDTO(fmd *FeatureMongoDao) *abstract.Feature {
+func convertFeatureDAOToDTO(fmd *featureMongoDao) *abstract.Feature {
 	f := &abstract.Feature{}
 
 	//f.ID = fmd.ID.String() // set it in DAO, propagate to DTO?
@@ -83,7 +80,7 @@ func convertFeatureDAOToDTO(fmd *FeatureMongoDao) *abstract.Feature {
 	return f
 }
 
-func convertFeatureSetDAOToDTO(fsmd *FeatureSetMongoDao) *abstract.FeatureSet {
+func convertFeatureSetDAOToDTO(fsmd *featureSetMongoDao) *abstract.FeatureSet {
 	fs := &abstract.FeatureSet{}
 
 	//fs.ID = fsmd.ID.String() // set it in DAO, propagate to DTO?
@@ -97,7 +94,7 @@ func convertFeatureSetDAOToDTO(fsmd *FeatureSetMongoDao) *abstract.FeatureSet {
 	return fs
 }
 
-func convertAllFeatureSets(inFeats *[]FeatureSetMongoDao) []abstract.FeatureSet {
+func convertAllFeatureSets(inFeats *[]featureSetMongoDao) []abstract.FeatureSet {
 	var feats []abstract.FeatureSet
 	for _, element := range *inFeats {
 		feats = append(feats, *convertFeatureSetDAOToDTO(&element))
@@ -105,7 +102,7 @@ func convertAllFeatureSets(inFeats *[]FeatureSetMongoDao) []abstract.FeatureSet 
 	return feats
 }
 
-func convertAllFeatures(inFeats *[]FeatureMongoDao) []abstract.Feature {
+func convertAllFeatures(inFeats *[]featureMongoDao) []abstract.Feature {
 	var feats []abstract.Feature
 	for _, element := range *inFeats {
 		feats = append(feats, *convertFeatureDAOToDTO(&element))
@@ -116,18 +113,18 @@ func convertAllFeatures(inFeats *[]FeatureMongoDao) []abstract.Feature {
 // both init and sync.Once are thread-safe
 // but only sync.Once is lazy
 var once sync.Once
-var instance *mongoDAO
+var instance *dao
 
 // GetSingleton ... lazy singleton on DAO
 func GetSingleton() abstract.FeatureSetDAOProvider {
 	// once.do is lazy, we use it to return an instance of the DAO
 	once.Do(func() {
-		instance = &mongoDAO{}
+		instance = &dao{}
 	})
 	return instance
 }
 
-func (dao *mongoDAO) Init(def *conf.DataSourceDefinition) {
+func (dao *dao) Init(def *conf.DataSourceDefinition) {
 	// create mongo connector
 	dao.Connector = mongo.NewMongoConnector()
 	// validate data source definition
@@ -138,11 +135,11 @@ func (dao *mongoDAO) Init(def *conf.DataSourceDefinition) {
 	dao.Connector.InitConnection(def)
 }
 
-func (dao *mongoDAO) CloseConnection() {
+func (dao *dao) CloseConnection() {
 	dao.Connector.CloseConnection()
 }
 
-func (dao *mongoDAO) Create(fs *abstract.FeatureSet) error {
+func (dao *dao) Create(fs *abstract.FeatureSet) error {
 	// convert DTO to DAO
 	//bsonVal := bson.M{"name": "pi", "value": 3.14159}
 	fsmd := convertFeatureSetDTOtoDAO(fs)
@@ -164,9 +161,8 @@ func (dao *mongoDAO) Create(fs *abstract.FeatureSet) error {
 	return nil
 }
 
-func (dao *mongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
-	var result FeatureSetMongoDao
-	filter := bson.M{"_id": id}
+func (dao *dao) getOneDocumentUsingFilter(filter interface{}) (*abstract.FeatureSet, error) {
+	var result featureSetMongoDao
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	err := dao.Connector.Collection.FindOne(ctx, filter).Decode(&result)
@@ -178,14 +174,12 @@ func (dao *mongoDAO) GetById(id string) (*abstract.FeatureSet, error) {
 	return convertFeatureSetDAOToDTO(&result), nil
 }
 
-func (dao *mongoDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
-	var features []FeatureSetMongoDao
+func (dao *dao) getAnyDocumentUsingFilter(filter interface{}) (*[]abstract.FeatureSet, error) {
+	var features []featureSetMongoDao
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	cursor, err := dao.Connector.Collection.Find(
-		ctx,
-		bson.D{{}},
-	)
+	cursor, err := dao.Connector.Collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -196,4 +190,22 @@ func (dao *mongoDAO) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
 
 	var resultFeats []abstract.FeatureSet = convertAllFeatureSets(&features)
 	return &resultFeats, nil
+}
+
+// GetById ... Retrieve document by given id
+func (dao *dao) GetById(id string) (*abstract.FeatureSet, error) {
+	filter := bson.M{"_id": id}
+	return dao.getOneDocumentUsingFilter(filter)
+}
+
+// GetByName ... Retrieve document by given name
+func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
+	filter := bson.M{"name": name}
+	return dao.getOneDocumentUsingFilter(filter)
+}
+
+// ListAllFeatureSets ... Return all feature sets available in collection
+func (dao *dao) ListAllFeatureSets() (*[]abstract.FeatureSet, error) {
+	filter := bson.M{}
+	return dao.getAnyDocumentUsingFilter(filter)
 }
