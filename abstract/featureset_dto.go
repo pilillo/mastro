@@ -22,9 +22,6 @@ type FeatureSet struct {
 	Labels      map[string]string `json:"labels,omitempty"`
 }
 
-// Version ... definition of version for a feature set
-type Version struct{}
-
 // Feature ... a named variable with a data type
 type Feature struct {
 	Name     string      `json:"name,omitempty"`

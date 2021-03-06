@@ -4,19 +4,10 @@
 
 A feature store is a service to store and version features.
 
-### FeatureSets and FeatureStates
-
 A Feature can either be computed on a dataset or a data stream, respectively using a batch or a stream processing pipeline.
 This is due to the different life cycle and performance requirements for collecting and serving those data to end applications.
 
 ```go
-// FeatureState ... a versioned set of features refered to a window over a reference time series or stream
-type FeatureState struct {
-	Description string            `json:"description,omitempty"`
-	Features    []Feature         `json:"features,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
-}
-
 // FeatureSet ... a versioned set of features
 type FeatureSet struct {
 	InsertedAt  time.Time         `json:"inserted_at,omitempty"`
@@ -25,9 +16,6 @@ type FeatureSet struct {
 	Description string            `json:"description,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 }
-
-// Version ... definition of version for a feature set
-type Version struct{}
 
 // Feature ... a named variable with a data type
 type Feature struct {
@@ -44,6 +32,7 @@ type FeatureSetDAOProvider interface {
 	Init(*conf.DataSourceDefinition)
 	Create(fs *FeatureSet) error
 	GetById(id string) (*FeatureSet, error)
+	GetByName(name string) (*FeatureSet, error)
 	ListAllFeatureSets() (*[]FeatureSet, error)
 	CloseConnection()
 }
@@ -61,6 +50,8 @@ var availableDAOs = map[string]func() abstract.FeatureSetDAOProvider{
 }
 ```
 
+## Service
+
 As for the exposed service, the `featurestore/service.go` defines a basic interface to retrieve featureSets:
 
 ```go
@@ -68,11 +59,26 @@ type Service interface {
 	Init(cfg *conf.Config) *errors.RestErr
 	CreateFeatureSet(fs abstract.FeatureSet) (*abstract.FeatureSet, *errors.RestErr)
 	GetFeatureSetByID(fsID string) (*abstract.FeatureSet, *errors.RestErr)
+	GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr)
 	ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr)
 }
 ```
 
+This is translated to the following endpoint:
+
+
+| Verb    | Endpoint                          | Maps to                                                     |
+|---------|-----------------------------------|-------------------------------------------------------------|
+| **GET** | /healthcheck/featureset           | github.com/pilillo/mastro/featurestore.Ping                 |
+| **GET** | /featureset/id/:featureset_id     | github.com/pilillo/mastro/featurestore.GetFeatureSetByID    |
+| **GET** | /featureset/name/:featureset_name | github.com/pilillo/mastro/featurestore.GetFeatureSetByName  |
+| **PUT** | /featureset/                      | github.com/pilillo/mastro/featurestore.CreateFeatureSet     |
+| **GET** | /featureset/                      | github.com/pilillo/mastro/featurestore.ListAllFeatureSets   | 
+
+
+
 This is for instance how to add a new featureSet calculated in the test environment of a fictional project.
+
 
 *PUT* on `localhost:8085/featureset` with body:
 ```json

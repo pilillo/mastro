@@ -73,7 +73,8 @@ backend:
     username: mongo
     password: test
     host: "localhost:27017"
-    schema: features
+    database: mastro
+    collection: mastro-featurestore
 ```
 
 ### Catalogue
@@ -91,7 +92,8 @@ backend:
     username: mongo
     password: test
     host: "localhost:27017"
-    schema: catalogue
+    database: mastro
+    collection: mastro-catalogue
 ```
 
 ### Crawler
@@ -126,7 +128,7 @@ backend:
     schedule-period: "sunday"
     schedule-value: 1
     start-now: true
-    catalogue-endpoint: "localhost:8085"
+    catalogue-endpoint: "http://localhost:8085/assets"
   settings:
     host: "localhost"
     port: "21000"
