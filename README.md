@@ -31,6 +31,7 @@ Terminology:
 Help:
 * [PlantUML Diagram of the repo](https://www.dumels.com/diagram/2e5f820a-1822-4852-8259-4811deefa789)
 * [Configuration](doc/CONFIGURATION.md)
+* [Deploy to K8s](doc/K8S-DEPLOY.md)
 
 Status:
 
