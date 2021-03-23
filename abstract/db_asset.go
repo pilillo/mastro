@@ -44,7 +44,9 @@ type databaseBuilder struct{ asset Asset }
 
 // NewDatabaseBuilder ... builder for a database asset type
 func NewDatabaseBuilder() *databaseBuilder {
-	return &databaseBuilder{}
+	builder := &databaseBuilder{}
+	builder.asset.Type = _Database
+	return builder
 }
 
 func (b *databaseBuilder) SetName(name string) *databaseBuilder {
@@ -72,7 +74,9 @@ type tableBuilder struct{ asset Asset }
 
 // NewTableBuilder ... table builder
 func NewTableBuilder() *tableBuilder {
-	return &tableBuilder{}
+	builder := &tableBuilder{}
+	builder.asset.Type = _Table
+	return builder
 }
 
 func (b *tableBuilder) SetName(name string) *tableBuilder {
