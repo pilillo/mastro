@@ -71,7 +71,7 @@ This is translated to the following endpoint:
 | Verb        | Endpoint                          | Maps to                                                       |
 |-------------|-----------------------------------|---------------------------------------------------------------|
 | **GET**     | /healthcheck/featureset           | github.com/pilillo/mastro/featurestore.Ping                   |
-| **GET**     | /featureset/id/:featureset_id     | github.com/pilillo/mastro/featurestore.GetFeatureSetByID      |
+| ~~**GET**~~ | ~~/featureset/id/:featureset_id~~ | ~~github.com/pilillo/mastro/featurestore.GetFeatureSetByID~~  |
 | **GET**     | /featureset/name/:featureset_name | github.com/pilillo/mastro/featurestore.GetFeatureSetByName    |
 | **PUT**     | /featureset/                      | github.com/pilillo/mastro/featurestore.CreateFeatureSet       |
 | ~~**GET**~~ | ~~/featureset/~~                  | ~~github.com/pilillo/mastro/featurestore.ListAllFeatureSets~~ | 
