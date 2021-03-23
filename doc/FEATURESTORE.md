@@ -10,6 +10,7 @@ This is due to the different life cycle and performance requirements for collect
 ```go
 // FeatureSet ... a versioned set of features
 type FeatureSet struct {
+	Name        string            `json:"name,omitempty"`
 	InsertedAt  time.Time         `json:"inserted_at,omitempty"`
 	Version     string            `json:"version,omitempty"`
 	Features    []Feature         `json:"features,omitempty"`
@@ -32,7 +33,7 @@ type FeatureSetDAOProvider interface {
 	Init(*conf.DataSourceDefinition)
 	Create(fs *FeatureSet) error
 	GetById(id string) (*FeatureSet, error)
-	GetByName(name string) (*FeatureSet, error)
+	GetByName(name string) (*[]FeatureSet, error)
 	ListAllFeatureSets() (*[]FeatureSet, error)
 	CloseConnection()
 }
@@ -59,7 +60,7 @@ type Service interface {
 	Init(cfg *conf.Config) *errors.RestErr
 	CreateFeatureSet(fs abstract.FeatureSet) (*abstract.FeatureSet, *errors.RestErr)
 	GetFeatureSetByID(fsID string) (*abstract.FeatureSet, *errors.RestErr)
-	GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr)
+	GetFeatureSetByName(fsName string) (*[]abstract.FeatureSet, *errors.RestErr)
 	ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr)
 }
 ```
@@ -67,15 +68,15 @@ type Service interface {
 This is translated to the following endpoint:
 
 
-| Verb    | Endpoint                          | Maps to                                                     |
-|---------|-----------------------------------|-------------------------------------------------------------|
-| **GET** | /healthcheck/featureset           | github.com/pilillo/mastro/featurestore.Ping                 |
-| **GET** | /featureset/id/:featureset_id     | github.com/pilillo/mastro/featurestore.GetFeatureSetByID    |
-| **GET** | /featureset/name/:featureset_name | github.com/pilillo/mastro/featurestore.GetFeatureSetByName  |
-| **PUT** | /featureset/                      | github.com/pilillo/mastro/featurestore.CreateFeatureSet     |
-| **GET** | /featureset/                      | github.com/pilillo/mastro/featurestore.ListAllFeatureSets   | 
+| Verb        | Endpoint                          | Maps to                                                       |
+|-------------|-----------------------------------|---------------------------------------------------------------|
+| **GET**     | /healthcheck/featureset           | github.com/pilillo/mastro/featurestore.Ping                   |
+| **GET**     | /featureset/id/:featureset_id     | github.com/pilillo/mastro/featurestore.GetFeatureSetByID      |
+| **GET**     | /featureset/name/:featureset_name | github.com/pilillo/mastro/featurestore.GetFeatureSetByName    |
+| **PUT**     | /featureset/                      | github.com/pilillo/mastro/featurestore.CreateFeatureSet       |
+| ~~**GET**~~ | ~~/featureset/~~                  | ~~github.com/pilillo/mastro/featurestore.ListAllFeatureSets~~ | 
 
-
+### Examples
 
 This is for instance how to add a new featureSet calculated in the test environment of a fictional project.
 
@@ -83,6 +84,7 @@ This is for instance how to add a new featureSet calculated in the test environm
 *PUT* on `localhost:8085/featureset` with body:
 ```json
 {
+	"name" : "mypipelinegeneratedfeatureset",
 	"version" : "test-v1.0",
 	"description" : "example feature set for testing purposes",
 	"labels" : {
@@ -92,12 +94,12 @@ This is for instance how to add a new featureSet calculated in the test environm
 	"features" : [
 		{
 			"name":"feature1",
-			"value":"10",
+			"value":10,
 			"data-type":"int"
 		},
 		{
 			"name":"feature2",
-			"value":"true",
+			"value":true,
 			"data-type":"bool"
 		}
 	]
@@ -107,17 +109,18 @@ This is for instance how to add a new featureSet calculated in the test environm
 with the service adding a date time for additional versioning and finally replying with:
 ```json
 {
+	"name" : "mypipelinegeneratedfeatureset",
     "inserted_at": "2020-11-29T17:24:01.747543Z",
     "version": "test-v1.0",
     "features": [
         {
             "name": "feature1",
-            "value": "10",
+            "value": 10,
             "data-type": "int"
         },
         {
             "name": "feature2",
-            "value": "true",
+            "value": true,
             "data-type": "bool"
         }
     ],
@@ -128,3 +131,6 @@ with the service adding a date time for additional versioning and finally replyi
     }
 }
 ```
+
+Mind that the `data-type` is provided as additional information, while go(lang) can correctly deserialize primitive values from Json.
+Moreover, the name here is used to group featuresets computed by the same process and it is therefore not to be considered as unique.

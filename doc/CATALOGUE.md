@@ -34,11 +34,51 @@ Have a look at `catalogue/daos/*` for example implementations.
 
 This is translated to the following endpoint:
 
-| Verb    | Endpoint                | Maps to                                             |
-|---------|-------------------------|-----------------------------------------------------|
-| **GET** | /healthcheck/asset      | github.com/pilillo/mastro/catalogue.Ping            |
-| **GET** | /asset/id/:asset_id     | github.com/pilillo/mastro/catalogue.GetAssetByID    |
-| **GET** | /asset/name/:asset_name | github.com/pilillo/mastro/catalogue.GetAssetByName  |
-| **PUT** | /asset/                 | github.com/pilillo/mastro/catalogue.UpsertAsset     |
-| **PUT** | /assets/                | github.com/pilillo/mastro/catalogue.BulkUpsert      |
-| **GET** | /assets/                | github.com/pilillo/mastro/catalogue.ListAllAssets   | 
+| Verb        | Endpoint                | Maps to                                                 |
+|-------------|-------------------------|---------------------------------------------------------|
+| **GET**     | /healthcheck/asset      | github.com/pilillo/mastro/catalogue.Ping                |
+| **GET**     | /asset/id/:asset_id     | github.com/pilillo/mastro/catalogue.GetAssetByID        |
+| **GET**     | /asset/name/:asset_name | github.com/pilillo/mastro/catalogue.GetAssetByName      |
+| **PUT**     | /asset/                 | github.com/pilillo/mastro/catalogue.UpsertAsset         |
+| **PUT**     | /assets/                | github.com/pilillo/mastro/catalogue.BulkUpsert          |
+| ~~**GET**~~ | ~~/assets/~~            | ~~github.com/pilillo/mastro/catalogue.ListAllAssets~~   | 
+
+### Examples
+
+We provide a few examples below:
+
+List all - *GET* on `localhost:8085/assets` with empty body, has result:
+```json
+{
+    "message": "Error while retrieving asset :: mongo: no documents in result",
+    "status": 404,
+    "error": "not_found"
+}
+```
+
+Upsert - *PUT* on `localhost:8085/asset` with body:
+```json
+{"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset"}
+```
+
+Bulk upsert - *PUT* on `localhost:8085/assets` with body:
+```json
+[
+	{"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset"},
+    {"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset"}    
+]
+```
+
+GetByName - *GET* on `localhost:8085/asset/example_featureset` has now result:
+```json
+{
+    "last-discovered-at": "2021-03-23T13:52:43.787Z",
+    "published-on": "0001-01-01T00:00:00Z",
+    "name": "example_featureset",
+    "description": "my first featureset pushed to the catalogue",
+    "depends-on": [
+        "table.mydb.mytable"
+    ],
+    "type": "featureset"
+}
+```

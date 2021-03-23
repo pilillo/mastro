@@ -307,7 +307,7 @@ func (dao *dao) GetById(id string) (*abstract.FeatureSet, error) {
 }
 
 // GetByName ... Retrieve document by given name
-func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
+func (dao *dao) GetByName(name string) (*[]abstract.FeatureSet, error) {
 
 	var buf bytes.Buffer
 	// use a term query to do an exact match of the name
@@ -319,6 +319,7 @@ func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
 			},
 		},
 	}
+
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		return nil, fmt.Errorf("Error encoding query: %s", err)
 	}
@@ -334,7 +335,8 @@ func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &((*hitDocs)[0]), nil
+		//return &((*hitDocs)[0]), nil
+		return hitDocs, nil
 	}
 	// else return an empty feature set
 	return nil, fmt.Errorf("No document found for name %s", name)

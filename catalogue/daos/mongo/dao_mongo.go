@@ -10,19 +10,18 @@ import (
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/sources/mongo"
 	"github.com/pilillo/mastro/utils/conf"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type assetMongoDao struct {
-	ID primitive.ObjectID `bson:"_id,omitempty"`
+	//ID primitive.ObjectID `bson:"_id,omitempty"`
 	// asset discovery datetime
 	LastDiscoveredAt time.Time `bson:"last-discovered-at"`
 	// asset publication datetime
 	PublishedOn time.Time `bson:"published-on"`
 	// name of the asset
-	Name string `bson:"name"`
+	Name string `bson:"_id"`
 	// description of the asset
 	Description string `bson:"description"`
 	// the list of assets this depends on
@@ -72,7 +71,6 @@ func convertAssetDAOtoDTO(asmd *assetMongoDao) *abstract.Asset {
 
 func convertAllAssets(inAssets *[]assetMongoDao) []abstract.Asset {
 	var assets []abstract.Asset
-
 	for _, element := range *inAssets {
 		assets = append(assets, *convertAssetDAOtoDTO(&element))
 	}
@@ -125,13 +123,21 @@ func (dao *dao) Upsert(as *abstract.Asset) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	filter := bson.M{"name": as.Name}
+	//filter := bson.M{"name": as.Name}
+	filter := bson.M{"_id": as.Name}
 	result, err := dao.Connector.Collection.ReplaceOne(ctx, filter, bsonVal, opts)
 	if err != nil {
 		return fmt.Errorf("Error while upserting asset :: %v", err)
 	}
-	id := result.UpsertedID
-	log.Printf("Upserted Asset %d", id)
+	//id := result.UpsertedID.(primitive.ObjectID).Hex()
+
+	if result.MatchedCount > 0 {
+		// we are updating an existing asset
+		log.Printf("Matched %d Asset(s) :: Modified %d documents", result.MatchedCount, result.ModifiedCount)
+	} else {
+		// upsert/insert
+		log.Printf("Upserted %d Asset(s) :: id = '%v'", result.UpsertedCount, result.UpsertedID)
+	}
 
 	return nil
 }
@@ -154,10 +160,12 @@ func (dao *dao) getAnyDocumentUsingFilter(filter interface{}) (*[]abstract.Asset
 	defer cancel()
 	cursor, err := dao.Connector.Collection.Find(ctx, filter)
 	if err != nil {
+		log.Println("find")
 		return nil, err
 	}
 
 	if err = cursor.All(ctx, &assets); err != nil {
+		log.Println("cursor.All", err)
 		return nil, err
 	}
 
@@ -167,13 +175,15 @@ func (dao *dao) getAnyDocumentUsingFilter(filter interface{}) (*[]abstract.Asset
 
 // GetById ... Retrieve document by given id
 func (dao *dao) GetById(id string) (*abstract.Asset, error) {
+	//primitive.ObjectIDFromHex(id)
 	filter := bson.M{"_id": id}
 	return dao.getOneDocumentUsingFilter(filter)
 }
 
 // GetByName ... Retrieve document by given name
 func (dao *dao) GetByName(name string) (*abstract.Asset, error) {
-	filter := bson.M{"name": name}
+	//filter := bson.M{"name": name}
+	filter := bson.M{"_id": name}
 	return dao.getOneDocumentUsingFilter(filter)
 }
 

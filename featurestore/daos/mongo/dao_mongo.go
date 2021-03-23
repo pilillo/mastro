@@ -17,12 +17,13 @@ import (
 
 // featureSetMongoDao ... DAO for the FeatureSet in Mongo
 type featureSetMongoDao struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	InsertedAt  time.Time          `bson:"inserted-at,omitempty"`
-	Version     string             `bson:"version,omitempty"`
-	Features    []featureMongoDao  `bson:"features,omitempty"`
-	Description string             `bson:"description,omitempty"`
-	Labels      map[string]string  `bson:"labels,omitempty"`
+	//ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Name        string            `bson:"name,omitempty"`
+	InsertedAt  time.Time         `bson:"inserted-at,omitempty"`
+	Version     string            `bson:"version,omitempty"`
+	Features    []featureMongoDao `bson:"features,omitempty"`
+	Description string            `bson:"description,omitempty"`
+	Labels      map[string]string `bson:"labels,omitempty"`
 }
 
 // featureMongoDao ... a named variable with a data type
@@ -54,6 +55,7 @@ func convertFeatureSetDTOtoDAO(fs *abstract.FeatureSet) *featureSetMongoDao {
 	fsmd := &featureSetMongoDao{}
 
 	//fsmd.ID = fs.ID // not set at time of insert
+	fsmd.Name = fs.Name
 	fsmd.InsertedAt = fs.InsertedAt
 	fsmd.Version = fs.Version
 
@@ -84,6 +86,7 @@ func convertFeatureSetDAOToDTO(fsmd *featureSetMongoDao) *abstract.FeatureSet {
 	fs := &abstract.FeatureSet{}
 
 	//fs.ID = fsmd.ID.String() // set it in DAO, propagate to DTO?
+	fs.Name = fsmd.Name
 	fs.InsertedAt = fsmd.InsertedAt
 	fs.Version = fsmd.Version
 
@@ -199,9 +202,9 @@ func (dao *dao) GetById(id string) (*abstract.FeatureSet, error) {
 }
 
 // GetByName ... Retrieve document by given name
-func (dao *dao) GetByName(name string) (*abstract.FeatureSet, error) {
+func (dao *dao) GetByName(name string) (*[]abstract.FeatureSet, error) {
 	filter := bson.M{"name": name}
-	return dao.getOneDocumentUsingFilter(filter)
+	return dao.getAnyDocumentUsingFilter(filter)
 }
 
 // ListAllFeatureSets ... Return all feature sets available in collection

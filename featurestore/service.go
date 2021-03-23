@@ -14,7 +14,7 @@ type Service interface {
 	Init(cfg *conf.Config) *errors.RestErr
 	CreateFeatureSet(fs abstract.FeatureSet) (*abstract.FeatureSet, *errors.RestErr)
 	GetFeatureSetByID(fsID string) (*abstract.FeatureSet, *errors.RestErr)
-	GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr)
+	GetFeatureSetByName(fsName string) (*[]abstract.FeatureSet, *errors.RestErr)
 	ListAllFeatureSets() (*[]abstract.FeatureSet, *errors.RestErr)
 }
 
@@ -43,8 +43,8 @@ func (s *featureSetServiceType) Init(cfg *conf.Config) *errors.RestErr {
 
 // CreateFeatureSet ... Create a FeatureSet entry
 func (s *featureSetServiceType) CreateFeatureSet(fs abstract.FeatureSet) (*abstract.FeatureSet, *errors.RestErr) {
-	if restErr := fs.Validate(); restErr != nil {
-		return nil, restErr
+	if err := fs.Validate(); err != nil {
+		return nil, errors.GetBadRequestError(err.Error())
 	}
 	// set insert time to current date, then insert using selected dao
 	fs.InsertedAt = date.GetNow()
@@ -66,7 +66,7 @@ func (s *featureSetServiceType) GetFeatureSetByID(fsID string) (*abstract.Featur
 }
 
 // GetFeatureSetByName ... Retrieves a FeatureSet
-func (s *featureSetServiceType) GetFeatureSetByName(fsName string) (*abstract.FeatureSet, *errors.RestErr) {
+func (s *featureSetServiceType) GetFeatureSetByName(fsName string) (*[]abstract.FeatureSet, *errors.RestErr) {
 	fset, err := dao.GetByName(fsName)
 	if err != nil {
 		return nil, errors.GetNotFoundError(err.Error())

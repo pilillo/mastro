@@ -1,6 +1,9 @@
 package abstract
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -44,6 +47,30 @@ const (
 	_Workflow             = "workflow"
 )
 
+var assetTypes = []AssetType{
+	_Database,
+	_Dataset,
+	_FeatureSet,
+	_Model,
+	_Notebook,
+	_Pipeline,
+	_Report,
+	_Service,
+	_Stream,
+	_Table,
+	_User,
+	_Workflow,
+}
+
+func isValidType(t AssetType) bool {
+	for _, b := range assetTypes {
+		if t == b {
+			return true
+		}
+	}
+	return false
+}
+
 // ParseAsset ... Parse an asset specification file
 func ParseAsset(data []byte) (*Asset, error) {
 	asset := Asset{}
@@ -53,12 +80,32 @@ func ParseAsset(data []byte) (*Asset, error) {
 	return &asset, err
 }
 
+func (assetType *AssetType) Validate() error {
+	inputStr := strings.TrimSpace(string(*assetType))
+	if len(inputStr) == 0 {
+		return errors.New("AssetType is empty")
+	}
+
+	// Validate the valid enum values
+	if !isValidType(*assetType) {
+		return errors.New(fmt.Sprintf("invalid value %s for AssetType", inputStr))
+	}
+	return nil
+}
+
 // Validate ... Validate asset specification file
 func (asset *Asset) Validate() error {
 
 	// validate required fields for an asset
 	// - name
 	// - assetType
+	if len(strings.TrimSpace(asset.Name)) == 0 {
+		return errors.New("Name is undefined")
+	}
+
+	if err := asset.Type.Validate(); err != nil {
+		return err
+	}
 
 	// validate optional fields if any available
 
