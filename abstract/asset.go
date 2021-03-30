@@ -22,11 +22,11 @@ type Asset struct {
 	// the list of assets this depends on
 	DependsOn []string `yaml:"depends-on" json:"depends-on"`
 	// asset type
-	Type AssetType `yaml:"type,omitempty" json:"type,omitempty"`
+	Type AssetType `yaml:"type" json:"type"`
 	// labels for the specific asset
-	Labels map[string]interface{} `yaml:"labels,omitempty" json:"labels,omitempty"`
+	Labels map[string]interface{} `yaml:"labels" json:"labels"`
 	// tags are flags used to simplify asset search
-	Tags []string `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Tags []string `yaml:"tags" json:"tags"`
 }
 
 // AssetType ... Asset type information

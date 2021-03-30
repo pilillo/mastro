@@ -41,7 +41,10 @@ This is translated to the following endpoint:
 | **GET**     | /asset/name/:asset_name | github.com/pilillo/mastro/catalogue.GetAssetByName      |
 | **PUT**     | /asset/                 | github.com/pilillo/mastro/catalogue.UpsertAsset         |
 | **PUT**     | /assets/                | github.com/pilillo/mastro/catalogue.BulkUpsert          |
+| **GET**     | /assets/tags            | github.com/pilillo/mastro/catalogue.SearchAssetsByTags  |
 | ~~**GET**~~ | ~~/assets/~~            | ~~github.com/pilillo/mastro/catalogue.ListAllAssets~~   | 
+
+Those crossed out are meant for testing purposes and will be removed in the following releases.
 
 ### Examples
 
@@ -64,8 +67,8 @@ Upsert - *PUT* on `localhost:8085/asset` with body:
 Bulk upsert - *PUT* on `localhost:8085/assets` with body:
 ```json
 [
-	{"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset"},
-    {"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset"}    
+	{"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset", "tags" : ["featureset"]},
+    {"last-discovered-at" : "2021-03-22T21:19:39.634Z", "published-on" : "0001-01-01T00:00:00.000Z", "name" : "example_featureset", "description" : "my first featureset pushed to the catalogue", "depends-on" : ["table.mydb.mytable"], "type" : "featureset", "tags" : ["featureset"]}    
 ]
 ```
 
@@ -79,6 +82,51 @@ GetByName - *GET* on `localhost:8085/asset/example_featureset` has now result:
     "depends-on": [
         "table.mydb.mytable"
     ],
-    "type": "featureset"
+    "type": "featureset",
+	"tags": [
+        "featureset"
+    ]
 }
+```
+
+SearchAssetsByTags - *GET* on `localhost:8085/assets/tags` passing a Json body of kind:
+```json
+{
+    "tags" : ["something"]
+}
+```
+
+returns an HTTP error status with a Json body of kind:
+```json
+{
+    "message": "Error while retrieving assets using filter :: empty result set",
+    "status": 404,
+    "error": "not_found"
+}
+```
+
+while with body:
+```json
+{
+    "tags" : ["featureset"]
+}
+```
+
+we get a list of all assets having the provided tags:
+```json
+[
+	{
+		"last-discovered-at": "2021-03-23T13:52:43.787Z",
+		"published-on": "0001-01-01T00:00:00Z",
+		"name": "example_featureset",
+		"description": "my first featureset pushed to the catalogue",
+		"depends-on": [
+			"table.mydb.mytable"
+		],
+		"type": "featureset",
+		"tags": [
+			"featureset"
+		]
+	}
+]
 ```

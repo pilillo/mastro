@@ -9,6 +9,7 @@ import (
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/utils/conf"
 	"github.com/pilillo/mastro/utils/errors"
+	"github.com/pilillo/mastro/utils/queries"
 )
 
 const (
@@ -78,6 +79,29 @@ func GetAssetByName(c *gin.Context) {
 	}
 }
 
+// SearchAssetsByTags ... retrieves any asset matching all specified tags or error if empty
+func SearchAssetsByTags(c *gin.Context) {
+	query := queries.ByTags{}
+	err := c.BindJSON(&query)
+
+	if err != nil {
+		restErr := errors.GetBadRequestError("Invalid query by tag")
+		c.JSON(restErr.Status, restErr)
+	} else {
+		if query.Tags == nil || len(query.Tags) == 0 {
+			restErr := errors.GetBadRequestError("Invalid query by tag :: empty tag list")
+			c.JSON(restErr.Status, restErr)
+		} else {
+			assets, getErr := assetService.SearchAssetsByTags(query.Tags)
+			if getErr != nil {
+				c.JSON(getErr.Status, getErr)
+			} else {
+				c.JSON(http.StatusOK, assets)
+			}
+		}
+	}
+}
+
 // ListAllAssets ... returns all assets
 func ListAllAssets(c *gin.Context) {
 	assets, err := assetService.ListAllAssets()
@@ -110,6 +134,9 @@ func StartEndpoint(cfg *conf.Config) {
 	router.PUT(fmt.Sprintf("%s/", assetRestEndpoint), UpsertAsset)
 	// put n assets as asset/
 	router.PUT(fmt.Sprintf("%s/", assetsRestEndpoint), BulkUpsert)
+
+	// get any asset matching tags
+	router.GET(fmt.Sprintf("%s/tags", assetsRestEndpoint), SearchAssetsByTags)
 
 	// list all assets
 	router.GET(fmt.Sprintf("%s/", assetsRestEndpoint), ListAllAssets)

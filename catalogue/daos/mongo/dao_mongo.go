@@ -29,9 +29,9 @@ type assetMongoDao struct {
 	// asset type
 	Type abstract.AssetType `bson:"type"`
 	// asset labels
-	Labels map[string]interface{} `bson:"labels,omitempty"`
+	Labels map[string]interface{} `bson:"labels"`
 	// tags are flags used to simplify asset search
-	Tags []string `bson:"tags,omitempty"`
+	Tags []string `bson:"tags"`
 }
 
 func convertAssetDTOtoDAO(as *abstract.Asset) *assetMongoDao {
@@ -46,9 +46,10 @@ func convertAssetDTOtoDAO(as *abstract.Asset) *assetMongoDao {
 	asmd.DependsOn = as.DependsOn
 
 	asmd.Type = as.Type
-	asmd.Labels = as.Labels
 
+	asmd.Labels = as.Labels
 	asmd.Tags = as.Tags
+
 	return asmd
 }
 
@@ -62,8 +63,8 @@ func convertAssetDAOtoDTO(asmd *assetMongoDao) *abstract.Asset {
 	as.DependsOn = asmd.DependsOn
 
 	as.Type = asmd.Type
-	as.Labels = asmd.Labels
 
+	as.Labels = asmd.Labels
 	as.Tags = asmd.Tags
 
 	return as
@@ -159,14 +160,17 @@ func (dao *dao) getAnyDocumentUsingFilter(filter interface{}) (*[]abstract.Asset
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cursor, err := dao.Connector.Collection.Find(ctx, filter)
+	// return if any error during get
 	if err != nil {
-		log.Println("find")
-		return nil, err
+		return nil, fmt.Errorf("Error while retrieving asset :: %v", err)
+	}
+	// return if any error while getting a cursor
+	if err = cursor.All(ctx, &assets); err != nil {
+		return nil, fmt.Errorf("Error while retrieving asset :: %v", err)
 	}
 
-	if err = cursor.All(ctx, &assets); err != nil {
-		log.Println("cursor.All", err)
-		return nil, err
+	if assets == nil {
+		return nil, fmt.Errorf("Error while retrieving assets using filter :: empty result set")
 	}
 
 	var resultAssets []abstract.Asset = convertAllAssets(&assets)
