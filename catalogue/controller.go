@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/utils/conf"
@@ -91,6 +92,10 @@ var router = gin.Default()
 
 // StartEndpoint ... starts the service endpoint
 func StartEndpoint(cfg *conf.Config) {
+	// https://github.com/gin-contrib/cors
+	// allow all origins
+	router.Use(cors.Default())
+
 	// init service
 	assetService.Init(cfg)
 

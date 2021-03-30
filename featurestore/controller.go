@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/pilillo/mastro/abstract"
 	"github.com/pilillo/mastro/utils/conf"
@@ -98,6 +99,9 @@ var router = gin.Default()
 
 // StartEndpoint ... handles requests for the endpoint on the specified port
 func StartEndpoint(cfg *conf.Config) {
+	// https://github.com/gin-contrib/cors
+	// allow all origins
+	router.Use(cors.Default())
 
 	// init service
 	featureSetService.Init(cfg)

@@ -9,6 +9,7 @@ require (
 	github.com/colinmarc/hdfs/v2 v2.1.2-0.20200910090628-650457eb0b9d
 	github.com/elastic/go-elasticsearch v0.0.0
 	github.com/elastic/go-elasticsearch/v7 v7.10.0
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-co-op/gocron v0.5.1
 	github.com/go-redis/redis/v8 v8.4.4
