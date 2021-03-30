@@ -85,7 +85,7 @@ func SearchAssetsByTags(c *gin.Context) {
 	err := c.BindJSON(&query)
 
 	if err != nil {
-		restErr := errors.GetBadRequestError("Invalid query by tag")
+		restErr := errors.GetBadRequestError("Invalid query by tag :: invalid input json format")
 		c.JSON(restErr.Status, restErr)
 	} else {
 		if query.Tags == nil || len(query.Tags) == 0 {
