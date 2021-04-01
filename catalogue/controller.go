@@ -136,7 +136,7 @@ func StartEndpoint(cfg *conf.Config) {
 	router.PUT(fmt.Sprintf("%s/", assetsRestEndpoint), BulkUpsert)
 
 	// get any asset matching tags
-	router.GET(fmt.Sprintf("%s/tags", assetsRestEndpoint), SearchAssetsByTags)
+	router.POST(fmt.Sprintf("%s/tags", assetsRestEndpoint), SearchAssetsByTags)
 
 	// list all assets
 	router.GET(fmt.Sprintf("%s/", assetsRestEndpoint), ListAllAssets)

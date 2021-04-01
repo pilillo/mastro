@@ -41,7 +41,7 @@ This is translated to the following endpoint:
 | **GET**     | /asset/name/:asset_name | github.com/pilillo/mastro/catalogue.GetAssetByName      |
 | **PUT**     | /asset/                 | github.com/pilillo/mastro/catalogue.UpsertAsset         |
 | **PUT**     | /assets/                | github.com/pilillo/mastro/catalogue.BulkUpsert          |
-| **GET**     | /assets/tags            | github.com/pilillo/mastro/catalogue.SearchAssetsByTags  |
+| **POST**    | /assets/tags            | github.com/pilillo/mastro/catalogue.SearchAssetsByTags  |
 | ~~**GET**~~ | ~~/assets/~~            | ~~github.com/pilillo/mastro/catalogue.ListAllAssets~~   | 
 
 Those crossed out are meant for testing purposes and will be removed in the following releases.
@@ -89,7 +89,7 @@ GetByName - *GET* on `localhost:8085/asset/example_featureset` has now result:
 }
 ```
 
-SearchAssetsByTags - *GET* on `localhost:8085/assets/tags` passing a Json body of kind:
+SearchAssetsByTags - *POST* on `localhost:8085/assets/tags` passing a Json body of kind:
 ```json
 {
     "tags" : ["something"]
