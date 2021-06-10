@@ -64,7 +64,7 @@ func (c *Connector) InitConnection(def *conf.DataSourceDefinition) {
 
 	endpoint := def.Settings[requiredFields["endpoint"]]
 	accessKeyID := def.Settings[requiredFields["accesskey"]]
-	secretKey := def.Settings[requiredFields["secretKey"]]
+	secretKey := def.Settings[requiredFields["secretkey"]]
 	useSSL, _ := strconv.ParseBool(def.Settings[requiredFields["usessl"]])
 	bucket := def.Settings[requiredFields["bucket"]]
 
